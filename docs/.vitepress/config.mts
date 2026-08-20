@@ -1,14 +1,21 @@
 import { defineConfig } from 'vitepress'
 
+// Đường dẫn cơ sở khi deploy lên GitHub Pages dạng project site:
+// https://toanbui-tech.github.io/banking-portfolio-docs/
+// Dùng chung biến này cho `base` và cho href tuyệt đối trong `head`,
+// vì VitePress KHÔNG tự động gắn base vào các href khai báo thủ công trong head.
+const base = '/banking-portfolio-docs/'
+
 // https://vitepress.dev/reference/site-config
 export default defineConfig({
   title: "Banking & Fintech Systems Portfolio",
   description: "Enterprise Java/Spring Boot Engineering Portfolio: ISO 20022 Payment Gateway & Core Banking Ledger",
   lang: 'vi-VN',
+  base,
   lastUpdated: true,
 
   head: [
-    ['link', { rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg' }],
+    ['link', { rel: 'icon', type: 'image/svg+xml', href: `${base}favicon.svg` }],
     ['meta', { name: 'theme-color', content: '#0f172a' }],
     ['meta', { name: 'author', content: 'Java FullStack Engineer' }],
   ],
