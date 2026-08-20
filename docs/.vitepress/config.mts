@@ -8,8 +8,8 @@ const base = '/banking-portfolio-docs/'
 
 // https://vitepress.dev/reference/site-config
 export default defineConfig({
-  title: "Banking & Fintech Systems Portfolio",
-  description: "Enterprise Java/Spring Boot Engineering Portfolio: ISO 20022 Payment Gateway & Core Banking Ledger",
+  title: "Banking & Fintech Systems",
+  description: "Java/Spring Boot: ISO 20022 Interbank Payment Gateway & Core Banking double-entry ledger — simulated banking infrastructure",
   lang: 'vi-VN',
   base,
   lastUpdated: true,
@@ -17,7 +17,6 @@ export default defineConfig({
   head: [
     ['link', { rel: 'icon', type: 'image/svg+xml', href: `${base}favicon.svg` }],
     ['meta', { name: 'theme-color', content: '#0f172a' }],
-    ['meta', { name: 'author', content: 'Java FullStack Engineer' }],
   ],
 
   themeConfig: {
@@ -120,7 +119,7 @@ export default defineConfig({
     ],
 
     footer: {
-      message: 'Fintech Engineering Portfolio — Architected with Java & Spring Boot',
+      message: 'Simulated Banking & Fintech Systems — Java & Spring Boot',
       copyright: 'Copyright © 2024-2025 Your Name'
     },
 

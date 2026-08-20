@@ -3,8 +3,8 @@ layout: home
 
 hero:
   name: "Banking & Fintech Systems"
-  text: "Java FullStack & Backend Architecture Portfolio"
-  tagline: "Mô phỏng hạ tầng ngân hàng theo lộ trình 3-6 tháng: Double-Entry Core Banking Ledger & ISO 20022 Interbank Payment Gateway"
+  text: "Core Banking & Interbank Payment Gateway"
+  tagline: "Hai hệ thống mô phỏng hạ tầng ngân hàng bằng Java/Spring: Double-Entry Core Banking Ledger & ISO 20022 Interbank Payment Gateway"
   actions:
     - theme: brand
       text: "Xem lộ trình xây dựng"
@@ -24,18 +24,18 @@ features:
   - title: Architecture Decision Records
     details: Các bản ghi quyết định kiến trúc (ADR) theo format Vấn đề - Lựa chọn - Lý do - Đánh đổi, phản ánh tư duy thiết kế thực sự sẽ áp dụng khi triển khai.
   - title: Lộ trình & Nhật ký tiến độ
-    details: Lộ trình học tập 3-6 tháng công khai, cùng nhật ký tiến độ theo từng giai đoạn — cập nhật trung thực khi triển khai, không phải trước.
+    details: Lộ trình xây dựng 3-6 tháng, cùng nhật ký tiến độ theo từng giai đoạn — cập nhật trung thực khi triển khai, không phải trước.
 ---
 
-## Mục đích tài liệu này
+## Tổng quan
 
-Tài liệu này được biên soạn nhằm minh chứng **năng lực thiết kế kiến trúc**, **tư duy giải quyết bài toán nghiệp vụ tài chính** và **kỹ năng lập trình Java Enterprise** cho vị trí **Java FullStack / Backend Software Engineer** tại các ngân hàng FDI và Fintech.
+Đây là hai hệ thống mô phỏng nghiệp vụ ngân hàng lõi, xây dựng bằng Java/Spring Boot theo [lộ trình](/roadmap) 3-6 tháng. Mỗi hệ thống tập trung vào một nhóm vấn đề kỹ thuật riêng:
 
-Đây là một portfolio **đang trong quá trình xây dựng** theo [lộ trình 3-6 tháng](/roadmap), không phải một sản phẩm đã hoàn thiện. Trọng tâm là:
+1. **Toàn vẹn dữ liệu tài chính**: sổ cái kế toán kép bất biến (double-entry, append-only), đảm bảo Debit = Credit ở mọi giao dịch, kiểm soát xung đột trên tài khoản nóng.
+2. **Giao dịch phân tán**: điều phối giao dịch liên ngân hàng bằng Saga Orchestration thay vì 2PC, xử lý idempotency và compensating transaction khi một bước thất bại.
+3. **Chuẩn hóa thông điệp tài chính**: parse & validate message ISO 20022 (`pain.001`, `pacs.008`), quyết toán cuối ngày theo batch.
 
-1. **Financial Domain Knowledge**: hiểu chuẩn điện chuyển tiền ISO 20022 (`pain.001`, `pacs.008`), nguyên lý kế toán kép (Debit/Credit balance rule).
-2. **System Resilience & Concurrency**: idempotency, Saga cho giao dịch phân tán, kiểm soát deadlock trên hot account.
-3. **Auditability**: audit trail bằng bút toán bù trừ (reversal entries), không sửa/xóa dữ liệu gốc.
+Cả hai hệ thống đang trong quá trình xây dựng; tiến độ theo từng giai đoạn được cập nhật tại [Devlog](/devlog/).
 
 ---
 

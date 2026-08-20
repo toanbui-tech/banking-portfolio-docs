@@ -1,4 +1,4 @@
-# Giai đoạn 3 — Tích hợp, đào sâu & hoàn thiện CV
+# Giai đoạn 3 — Tích hợp & hoàn thiện
 
 **Trạng thái:** [Chưa bắt đầu]
 

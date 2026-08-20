@@ -6,7 +6,7 @@
 
 | Thành phần | Công nghệ / Thư viện | Lý do chọn lựa |
 | :--- | :--- | :--- |
-| **Backend Core** | Java, Spring Boot | Nền tảng chính của toàn bộ portfolio |
+| **Backend Core** | Java, Spring Boot | Nền tảng chính của cả hai sub-project |
 | **Data Access** | Spring Data JPA, Hibernate, Flyway | Version control cho DB schema |
 | **Database** | PostgreSQL | Đã dùng chung với Sub-project B, thuận tiện tích hợp |
 | **Orchestration** | Spring State Machine | Quản lý state machine cho Saga Orchestrator |
