@@ -9,6 +9,9 @@ Xem mục tiêu đầy đủ của giai đoạn này tại [Lộ trình — Giai
 - Thiết lập môi trường dev ban đầu (Java, Maven, Docker Postgres, Flyway) — chi tiết ở mục [Thiết lập môi trường](#thiết-lập-môi-trường) bên dưới.
 - Build Maven thành công (BUILD SUCCESS).
 - Flyway migration chạy thành công, tạo bảng `accounts` và `ledger_entries`.
+- Entity layer: `Account`, `LedgerEntry` map đúng schema migration V1 — chi tiết ở mục [Entity layer đã hoàn thành](#entity-layer-đã-hoàn-thành).
+- `LedgerService.recordTransaction()` — validate cân bằng Nợ/Có trước khi lưu, chạy atomic trong 1 transaction.
+- Unit test `LedgerServiceTest` (3 test case) — BUILD SUCCESS, Tests run: 3, Failures: 0, Errors: 0.
 
 ## Thiết lập môi trường
 
@@ -59,6 +62,29 @@ Log lại theo đúng thứ tự thời gian các vấn đề gặp phải khi s
 ### Kết quả
 
 Sau khi xử lý đủ 7 vấn đề trên: build Maven thành công (BUILD SUCCESS), Flyway migration chạy và tạo thành công bảng `accounts`, `ledger_entries`.
+
+## Entity layer đã hoàn thành
+
+- `Account` entity (package `account/`): `id` (UUID), `accountNumber`, `accountType`, `currency`, `status`, `createdAt` — map đúng bảng `accounts` trong migration V1.
+- `LedgerEntry` entity (package `ledger/`): `id`, `accountId`, `transactionId`, `entryType` (enum `DEBIT`/`CREDIT`), `amount` (`BigDecimal`), `createdAt` — map đúng bảng `ledger_entries`.
+- Dùng enum `EntryType` thay vì `String` thô cho `entryType` — validate ở compile-time, khớp với CHECK constraint trong migration SQL. `@Enumerated(EnumType.STRING)` đảm bảo lưu tên chữ, không lưu index số.
+- Dùng `BigDecimal` cho `amount`, không dùng `double`/`float` — tránh sai số làm tròn số thực trong hệ thống tài chính.
+
+## LedgerService — logic validate cân bằng Nợ/Có
+
+- Method `recordTransaction(List<LedgerEntry>)` — validate tổng Debit = tổng Credit trước khi lưu, throw `IllegalStateException` nếu lệch.
+- `@Transactional` đảm bảo toàn bộ danh sách `LedgerEntry` được lưu atomic (tất cả hoặc không gì cả).
+- `transactionId` được sinh trong service (không nhận từ ngoài) — đảm bảo mọi entry trong 1 lần gọi thuộc cùng 1 giao dịch logic.
+- Dùng `BigDecimal.compareTo()` thay vì `equals()` khi so sánh tổng Nợ/Có — `equals()` coi `100.0` và `100.00` là khác nhau do khác scale, `compareTo()` so sánh đúng giá trị số học.
+
+## Unit test và các lỗi phát hiện qua test
+
+Viết `LedgerServiceTest` với 2 test case: giao dịch cân bằng phải thành công, giao dịch lệch phải throw exception. Trong quá trình chạy test phát hiện 2 lỗi, cả hai đều do dữ liệu test chưa hợp lệ, không phải lỗi logic nghiệp vụ:
+
+1. **Foreign key constraint violation:** test ban đầu dùng UUID ngẫu nhiên làm `accountId` mà không tạo `Account` thật trước — Postgres từ chối vì `ledger_entries.account_id` có ràng buộc `REFERENCES accounts(id)`. Đây là bằng chứng cho thấy ràng buộc toàn vẹn dữ liệu ở tầng database hoạt động đúng như thiết kế. Sửa bằng cách thêm helper method tạo `Account` thật trong test trước khi test `LedgerEntry`.
+2. **Value too long for varchar(20):** sau khi sửa lỗi 1, helper tạo `accountNumber` bằng cách nối UUID đầy đủ (36 ký tự) trong khi cột `account_number` giới hạn `VARCHAR(20)`. Sửa bằng cách rút gọn UUID xuống 8 ký tự đầu khi tạo `accountNumber` cho test.
+
+Kết quả cuối: `Tests run: 3, Failures: 0, Errors: 0` — BUILD SUCCESS.
 
 ## Khó khăn & giải pháp
 
