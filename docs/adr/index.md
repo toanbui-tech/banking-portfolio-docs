@@ -13,3 +13,4 @@ Các bản ghi quyết định kiến trúc (ADR) được viết theo format **
 | [ADR-003](/adr/ADR-003-pessimistic-vs-optimistic-locking-hot-accounts) | Xung đột đồng thời trên tài khoản nóng (hot account) | Pessimistic Lock + khóa theo thứ tự cố định | Độ trễ tăng nhẹ trên từng tài khoản đơn lẻ |
 | [ADR-004](/adr/ADR-004-idempotency-duplicate-message-prevention) | Chống xử lý trùng lặp khi message bị gửi lại | Idempotency-Key kiểm tra tại lớp API | Cần chính sách dọn dẹp/hết hạn cho bảng idempotency key |
 | [ADR-005](/adr/ADR-005-spring-batch-chunk-vs-tasklet-eod) | Xử lý đối soát & quyết toán cuối ngày (EOD) | Spring Batch Chunk-Oriented Step | Phức tạp hơn Tasklet đơn giản, cần tinh chỉnh chunk size |
+| [ADR-006](/adr/ADR-006-derived-balance-vs-stored-balance) | Lưu trữ số dư tài khoản (balance) | Không lưu cột `balance`, tính động từ `SUM(CREDIT) - SUM(DEBIT)` trên ledger | Tốn chi phí truy vấn `SUM()` mỗi lần gọi, cần cân nhắc snapshot khi hệ thống lớn hơn |

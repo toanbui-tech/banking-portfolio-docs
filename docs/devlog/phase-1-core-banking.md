@@ -12,6 +12,8 @@ Xem mục tiêu đầy đủ của giai đoạn này tại [Lộ trình — Giai
 - Entity layer: `Account`, `LedgerEntry` map đúng schema migration V1 — chi tiết ở mục [Entity layer đã hoàn thành](#entity-layer-đã-hoàn-thành).
 - `LedgerService.recordTransaction()` — validate cân bằng Nợ/Có trước khi lưu, chạy atomic trong 1 transaction.
 - Unit test `LedgerServiceTest` (3 test case) — BUILD SUCCESS, Tests run: 3, Failures: 0, Errors: 0.
+- `AccountService.getBalance()` — tính số dư động từ ledger thay vì lưu trực tiếp — chi tiết ở mục [AccountService — tính balance từ ledger](#accountservice--tính-balance-từ-ledger) bên dưới.
+- Unit test `AccountServiceTest` (1 test case) — BUILD SUCCESS, Tests run: 4, Failures: 0, Errors: 0.
 
 ## Thiết lập môi trường
 
@@ -85,6 +87,14 @@ Viết `LedgerServiceTest` với 2 test case: giao dịch cân bằng phải th�
 2. **Value too long for varchar(20):** sau khi sửa lỗi 1, helper tạo `accountNumber` bằng cách nối UUID đầy đủ (36 ký tự) trong khi cột `account_number` giới hạn `VARCHAR(20)`. Sửa bằng cách rút gọn UUID xuống 8 ký tự đầu khi tạo `accountNumber` cho test.
 
 Kết quả cuối: `Tests run: 3, Failures: 0, Errors: 0` — BUILD SUCCESS.
+
+## AccountService — tính balance từ ledger
+
+- Thêm 2 query vào `LedgerEntryRepository`: `sumDebitByAccountId`, `sumCreditByAccountId` — dùng JPQL với `COALESCE(SUM(...), 0)` để tránh `NULL` khi tài khoản chưa có giao dịch nào.
+- `AccountService.getBalance(accountId)` = Tổng Credit - Tổng Debit, đúng quy tắc kế toán cho tài khoản khách hàng (nhóm Nợ phải trả): tăng ghi Có, giảm ghi Nợ.
+- Viết `AccountServiceTest`: tạo 2 account, ghi 1 giao dịch qua `LedgerService` (100.00 CREDIT cho account, 100.00 DEBIT cho counterparty), xác nhận `getBalance()` trả về đúng 100.00.
+- Kết quả: `Tests run: 4, Failures: 0, Errors: 0` — BUILD SUCCESS. Toàn bộ nền tảng Account/Ledger/Balance của Giai đoạn 1 đã hoạt động đúng.
+- Đã viết ADR ghi lại quyết định thiết kế: ledger bất biến, balance tính động thay vì lưu trực tiếp (xem [ADR-006](/adr/ADR-006-derived-balance-vs-stored-balance)).
 
 ## Khó khăn & giải pháp
 
