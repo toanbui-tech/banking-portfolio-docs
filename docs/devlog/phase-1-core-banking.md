@@ -14,6 +14,8 @@ Xem mục tiêu đầy đủ của giai đoạn này tại [Lộ trình — Giai
 - Unit test `LedgerServiceTest` (3 test case) — BUILD SUCCESS, Tests run: 3, Failures: 0, Errors: 0.
 - `AccountService.getBalance()` — tính số dư động từ ledger thay vì lưu trực tiếp — chi tiết ở mục [AccountService — tính balance từ ledger](#accountservice--tính-balance-từ-ledger) bên dưới.
 - Unit test `AccountServiceTest` (1 test case) — BUILD SUCCESS, Tests run: 4, Failures: 0, Errors: 0.
+- `AccountService.withdraw()` — Pessimistic Locking (`SELECT ... FOR UPDATE`) ngăn race condition khi rút tiền đồng thời — chi tiết ở mục [Pessimistic Locking — ngăn race condition khi rút tiền](#pessimistic-locking--ngăn-race-condition-khi-rút-tiền) bên dưới.
+- Unit test race condition `withdraw_shouldPreventOverdraft_whenConcurrentRequests` — BUILD SUCCESS, Tests run: 5, Failures: 0, Errors: 0.
 
 ## Thiết lập môi trường
 
@@ -95,6 +97,15 @@ Kết quả cuối: `Tests run: 3, Failures: 0, Errors: 0` — BUILD SUCCESS.
 - Viết `AccountServiceTest`: tạo 2 account, ghi 1 giao dịch qua `LedgerService` (100.00 CREDIT cho account, 100.00 DEBIT cho counterparty), xác nhận `getBalance()` trả về đúng 100.00.
 - Kết quả: `Tests run: 4, Failures: 0, Errors: 0` — BUILD SUCCESS. Toàn bộ nền tảng Account/Ledger/Balance của Giai đoạn 1 đã hoạt động đúng.
 - Đã viết ADR ghi lại quyết định thiết kế: ledger bất biến, balance tính động thay vì lưu trực tiếp (xem [ADR-006](/adr/ADR-006-derived-balance-vs-stored-balance)).
+
+## Pessimistic Locking — ngăn race condition khi rút tiền
+
+- Đọc trước: Optimistic vs Pessimistic Locking trong Spring Data JPA.
+- Thêm `AccountRepository.findByIdForUpdate()` dùng `@Lock(LockModeType.PESSIMISTIC_WRITE)` — sinh SQL `SELECT ... FOR UPDATE` (Postgres cụ thể hiển thị `FOR NO KEY UPDATE`).
+- Thêm `AccountService.withdraw(accountId, counterpartyAccountId, amount)`: khóa account, kiểm tra đủ số dư, ghi cặp `LedgerEntry` (DEBIT cho account, CREDIT cho counterparty) qua `LedgerService`.
+- Viết test `withdraw_shouldPreventOverdraft_whenConcurrentRequests`: giả lập 2 thread cùng rút 80.00 từ tài khoản có 100.00, dùng `ExecutorService` + `CountDownLatch` + `AtomicInteger` để đếm số giao dịch thành công. Xác nhận đúng 1 trong 2 thread thành công.
+- Kết quả: `Tests run: 5, Failures: 0, Errors: 0` — BUILD SUCCESS. Log Hibernate xác nhận cơ chế khóa hoạt động đúng (2 thread được tuần tự hóa, không chạy song song trên cùng account).
+- Đã viết ADR-007 ghi lại lý do chọn Pessimistic thay vì Optimistic Locking cho bài toán này (xem [docs/adr/](/adr/)).
 
 ## Khó khăn & giải pháp
 
