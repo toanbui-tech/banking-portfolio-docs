@@ -60,6 +60,31 @@ function clearPendingNavClick() {
   }
 }
 
+// Nav bar "condense" khi cuộn: chỉ toggle 1 class, CSS lo phần hiển thị.
+// Không phụ thuộc reduced-motion ở tầng JS — trạng thái vẫn đúng, CSS sẽ
+// tự bỏ phần transition khi người dùng bật prefers-reduced-motion.
+function attachScrollCondense() {
+  const SCROLL_THRESHOLD = 12
+  let ticking = false
+
+  const applyState = () => {
+    document.documentElement.classList.toggle('vp-scrolled', window.scrollY > SCROLL_THRESHOLD)
+    ticking = false
+  }
+
+  window.addEventListener(
+    'scroll',
+    () => {
+      if (ticking) return
+      ticking = true
+      requestAnimationFrame(applyState)
+    },
+    { passive: true }
+  )
+
+  applyState()
+}
+
 function attachRippleListeners() {
   document.addEventListener(
     'click',
@@ -95,7 +120,11 @@ function attachRippleListeners() {
 export default {
   extends: DefaultTheme,
   enhanceApp({ router }) {
-    if (!isBrowser() || prefersReducedMotion()) return
+    if (!isBrowser()) return
+
+    attachScrollCondense()
+
+    if (prefersReducedMotion()) return
 
     attachRippleListeners()
 

@@ -132,6 +132,32 @@ html:not(.dark) .Layout {
   background: transparent;
 }
 
+/* Nav bar "condense" khi cuộn (kiểu iOS large-title → compact-title):
+   chỉ đổi độ đục/shadow + scale nhẹ logo, KHÔNG đụng --vp-nav-height nên
+   không gây reflow cho sidebar/content vốn tính offset theo biến đó. */
+.VPNavBar,
+.VPNavBarTitle .title {
+  transition: background-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease;
+}
+
+.VPNavBarTitle .title {
+  transform-origin: left center;
+}
+
+html.vp-scrolled .VPNavBar {
+  background: rgba(255, 255, 255, 0.78) !important;
+  box-shadow: 0 10px 28px rgba(3, 105, 161, 0.18), 0 1px 2px rgba(3, 105, 161, 0.1);
+}
+
+html.dark.vp-scrolled .VPNavBar {
+  background: rgba(15, 23, 42, 0.78) !important;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.5);
+}
+
+html.vp-scrolled .VPNavBarTitle .title {
+  transform: scale(0.94);
+}
+
 /* Sidebar: kính mờ */
 .VPSidebar {
   background: rgba(255, 255, 255, 0.55) !important;
@@ -142,6 +168,22 @@ html:not(.dark) .Layout {
 
 .dark .VPSidebar {
   background: rgba(15, 23, 42, 0.55) !important;
+}
+
+/* Active-indicator: mọc/thu mượt thay vì đổi màu tức thời */
+.VPSidebarItem .indicator {
+  transition: background-color 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease;
+  transform: scaleY(0.4);
+  opacity: 0;
+}
+
+.VPSidebarItem.level-2.is-active > .item > .indicator,
+.VPSidebarItem.level-3.is-active > .item > .indicator,
+.VPSidebarItem.level-4.is-active > .item > .indicator,
+.VPSidebarItem.level-5.is-active > .item > .indicator {
+  transform: scaleY(1);
+  opacity: 1;
 }
 
 /* Feature card: kính mờ + nổi lên khi hover */
@@ -171,6 +213,16 @@ html:not(.dark) .Layout {
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5), 0 4px 12px rgba(56, 189, 248, 0.15);
 }
 
+/* Phản hồi khi bấm: ép xuống nhẹ thay vì chỉ giữ nguyên trạng thái hover */
+.VPFeature:active {
+  transform: scale(0.98);
+}
+
+.VPFeature.link:active {
+  transform: translateY(-2px) scale(0.98);
+  transition-duration: 0.12s;
+}
+
 /* CTA (VPButton.brand): pill kính mờ, chữ đen/trắng thuần */
 .VPButton.brand {
   backdrop-filter: blur(12px) saturate(160%);
@@ -180,6 +232,21 @@ html:not(.dark) .Layout {
 
 .dark .VPButton.brand {
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+/* Phản hồi khi bấm cho mọi nút (brand/alt): ép specificity của style scoped
+   gốc bằng !important vì cần thêm "transform" vào cùng khai báo transition */
+.VPButton.brand,
+.VPButton.alt {
+  transition: color 0.25s, border-color 0.25s, background-color 0.25s,
+    box-shadow 0.25s ease, transform 0.2s ease !important;
+}
+
+.VPButton.brand:active,
+.VPButton.alt:active {
+  transition: color 0.1s, border-color 0.1s, background-color 0.1s,
+    transform 0.1s ease !important;
+  transform: scale(0.97);
 }
 
 /* Bảng: bo góc đồng bộ với card/code block */
@@ -376,5 +443,17 @@ html:not(.dark) .Layout {
   .vp-droplet-ripple {
     display: none !important;
     animation: none !important;
+  }
+
+  /* Giữ nguyên trạng thái cuối (condense/indicator/lift/press) nhưng bỏ
+     hẳn phần nội suy chuyển động — chỉ chuyển tức thời. */
+  .VPNavBar,
+  .VPNavBarTitle .title,
+  .VPSidebarItem .indicator,
+  .VPFeature,
+  .VPFeature.link,
+  .VPButton.brand,
+  .VPButton.alt {
+    transition: none !important;
   }
 }
