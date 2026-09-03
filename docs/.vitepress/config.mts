@@ -120,7 +120,7 @@ export default defineConfig({
 
     footer: {
       message: 'Simulated Banking & Fintech Systems — Java & Spring Boot',
-      copyright: 'Copyright © 2024-2025 Your Name'
+      copyright: 'Copyright © 2024-2025 Toan Bui - Software Engineer. All rights reserved.'
     },
 
     search: {

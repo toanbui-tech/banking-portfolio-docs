@@ -1,17 +1,62 @@
-/* Custom Theme Styles: Banking / Fintech, tối giản */
+/* Custom Theme Styles: Banking / Fintech — "Liquid Glass" (iOS-style)
+ *
+ * Quy tắc màu chữ (bắt buộc):
+ * - Text CHỈ dùng đen (light) / trắng (dark). Sắc thái đen/trắng (rgba alpha
+ *   khác nhau cho text-1/2/3) vẫn tính là "đen"/"trắng", không phải accent.
+ * - Màu accent (--vp-c-brand-*) CHỈ xuất hiện ở nền, viền, shadow, icon —
+ *   không bao giờ set trực tiếp lên `color` của text.
+ * - Contrast đã tính tay theo WCAG AA (ghi chú ở từng chỗ có rủi ro thấp).
+ * -------------------------------------------------------------------------- */
+
 :root {
-  /* Đã kiểm tra contrast: #0369a1 trên nền trắng đạt tỉ lệ ~5.9:1 (WCAG AA cho text thường >= 4.5:1) */
+  /* Đã kiểm tra contrast: #0369a1 trên nền trắng đạt tỉ lệ ~5.9:1 (chỉ dùng cho
+     nền/viền/shadow bên dưới, KHÔNG dùng cho text) */
   --vp-c-brand-1: #0369a1;
   --vp-c-brand-2: #075985;
   --vp-c-brand-3: #0c4a6e;
   --vp-c-brand-soft: rgba(3, 105, 161, 0.12);
 
-  --vp-home-hero-name-color: transparent;
-  --vp-home-hero-name-background: linear-gradient(135deg, #0369a1 0%, #047857 100%);
+  /* Text: chỉ đen, 3 mức opacity cho phân cấp (vẫn là "đen") */
+  --vp-c-text-1: #000000;
+  --vp-c-text-2: rgba(0, 0, 0, 0.72);
+  --vp-c-text-3: rgba(0, 0, 0, 0.56);
+
+  /* Hero name: solid đen, KHÔNG gradient chữ */
+  --vp-home-hero-name-color: var(--vp-c-text-1);
+  --vp-home-hero-name-background: transparent;
+
+  /* Code / inline-code / link-trong-code: ép về text đen, accent chỉ còn ở nền */
+  --vp-code-color: var(--vp-c-text-1);
+  --vp-code-link-color: var(--vp-c-text-1);
+  --vp-code-link-hover-color: var(--vp-c-text-1);
+  --vp-code-block-color: var(--vp-c-text-1);
+
+  /* Button brand: nền kính mờ pastel sáng để chữ ĐEN vẫn đạt AA (>7:1) */
+  --vp-button-brand-border: rgba(3, 105, 161, 0.35);
+  --vp-button-brand-text: var(--vp-c-text-1);
+  --vp-button-brand-bg: rgba(186, 230, 253, 0.75);
+  --vp-button-brand-hover-border: rgba(3, 105, 161, 0.55);
+  --vp-button-brand-hover-text: var(--vp-c-text-1);
+  --vp-button-brand-hover-bg: rgba(153, 246, 228, 0.8);
+  --vp-button-brand-active-border: rgba(3, 105, 161, 0.65);
+  --vp-button-brand-active-text: var(--vp-c-text-1);
+  --vp-button-brand-active-bg: rgba(125, 211, 252, 0.85);
+
+  --vp-badge-tip-text: var(--vp-c-text-1);
+  --vp-badge-warning-text: var(--vp-c-text-1);
+  --vp-badge-danger-text: var(--vp-c-text-1);
+
+  --vp-local-search-highlight-bg: rgba(3, 105, 161, 0.22);
+  --vp-local-search-highlight-text: var(--vp-c-text-1);
+
+  /* Token "kính mờ" dùng chung cho nav/sidebar/card/button */
+  --glass-blur: blur(20px) saturate(180%);
+  --glass-border-light: rgba(255, 255, 255, 0.5);
+  --glass-shadow: 0 8px 32px rgba(3, 105, 161, 0.12), 0 1px 2px rgba(3, 105, 161, 0.08);
 }
 
 .dark {
-  /* #38bdf8 trên nền #0f172a đạt tỉ lệ ~8.3:1 */
+  /* #38bdf8 trên nền #0f172a đạt tỉ lệ ~8.3:1 (chỉ dùng cho nền/viền/shadow) */
   --vp-c-brand-1: #38bdf8;
   --vp-c-brand-2: #7dd3fc;
   --vp-c-brand-3: #0284c7;
@@ -24,19 +69,225 @@
 
   --vp-c-border: #334155;
   --vp-c-divider: #334155;
+
+  /* Text: chỉ trắng, 3 mức opacity */
+  --vp-c-text-1: #ffffff;
+  --vp-c-text-2: rgba(255, 255, 255, 0.78);
+  --vp-c-text-3: rgba(255, 255, 255, 0.62);
+
+  /* Button brand: nền kính mờ tối để chữ TRẮNG đạt AA */
+  --vp-button-brand-border: rgba(56, 189, 248, 0.4);
+  --vp-button-brand-bg: rgba(12, 74, 110, 0.65);
+  --vp-button-brand-hover-border: rgba(56, 189, 248, 0.6);
+  --vp-button-brand-hover-bg: rgba(6, 95, 70, 0.7);
+  --vp-button-brand-active-border: rgba(56, 189, 248, 0.75);
+  --vp-button-brand-active-bg: rgba(2, 132, 199, 0.55);
+
+  --vp-local-search-highlight-bg: rgba(56, 189, 248, 0.28);
+
+  --glass-border-light: rgba(255, 255, 255, 0.08);
+  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.45), 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 
-/* Code block: viền rõ để phân tách khỏi nội dung xung quanh */
-.vp-doc pre {
-  border: 1px solid var(--vp-c-border);
-  border-radius: 8px;
+/* Nền trang: gradient pastel rất nhẹ, không ảnh hưởng tới contrast của text */
+html:not(.dark) body,
+html:not(.dark) .Layout {
+  background: linear-gradient(
+    160deg,
+    #f0f9ff 0%,
+    #f0fdfa 45%,
+    #fdf4ff 100%
+  );
 }
 
-/* Bảng rộng: cuộn ngang trong chính khung bảng thay vì tràn ra ngoài trang */
+.dark body,
+.dark .Layout {
+  background: linear-gradient(
+    160deg,
+    #0f172a 0%,
+    #0b1324 45%,
+    #10182b 100%
+  );
+}
+
+/* Nav bar: kính mờ dính trên cùng */
+.VPNav {
+  background: transparent;
+}
+
+.VPNavBar {
+  background: rgba(255, 255, 255, 0.55) !important;
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border-bottom: 1px solid var(--glass-border-light);
+  box-shadow: var(--glass-shadow);
+  transition: background-color 0.3s, box-shadow 0.3s;
+}
+
+.dark .VPNavBar {
+  background: rgba(15, 23, 42, 0.55) !important;
+}
+
+.VPNavBar.has-sidebar .curtain {
+  background: transparent;
+}
+
+/* Sidebar: kính mờ */
+.VPSidebar {
+  background: rgba(255, 255, 255, 0.55) !important;
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border-right: 1px solid var(--glass-border-light);
+}
+
+.dark .VPSidebar {
+  background: rgba(15, 23, 42, 0.55) !important;
+}
+
+/* Feature card: kính mờ + nổi lên khi hover */
+.VPFeature {
+  background: rgba(255, 255, 255, 0.55) !important;
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border-light);
+  border-radius: 18px;
+  box-shadow: var(--glass-shadow);
+  transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+  cursor: pointer;
+}
+
+.dark .VPFeature {
+  background: rgba(30, 41, 59, 0.55) !important;
+}
+
+.VPFeature.link:hover {
+  transform: translateY(-6px);
+  border-color: rgba(3, 105, 161, 0.4);
+  box-shadow: 0 20px 40px rgba(3, 105, 161, 0.2), 0 4px 12px rgba(3, 105, 161, 0.12);
+}
+
+.dark .VPFeature.link:hover {
+  border-color: rgba(56, 189, 248, 0.45);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5), 0 4px 12px rgba(56, 189, 248, 0.15);
+}
+
+/* CTA (VPButton.brand): pill kính mờ, chữ đen/trắng thuần */
+.VPButton.brand {
+  backdrop-filter: blur(12px) saturate(160%);
+  -webkit-backdrop-filter: blur(12px) saturate(160%);
+  box-shadow: 0 4px 16px rgba(3, 105, 161, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+
+.dark .VPButton.brand {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+/* Bảng: bo góc đồng bộ với card/code block */
 .vp-doc table {
   display: block;
   overflow-x: auto;
   max-width: 100%;
+  border-radius: 12px;
+  border: 1px solid var(--vp-c-divider);
+}
+
+.vp-doc th:first-child,
+.vp-doc tr:first-child td:first-child {
+  border-top-left-radius: 11px;
+}
+
+/* Code block: kính mờ nhẹ, viền + bo góc đồng bộ */
+.vp-doc pre,
+.vp-doc div[class*='language-'] {
+  border: 1px solid var(--vp-c-border);
+  border-radius: 12px;
+}
+
+.vp-doc div[class*='language-'] {
+  background: rgba(255, 255, 255, 0.55) !important;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+.dark .vp-doc div[class*='language-'] {
+  background: rgba(15, 23, 42, 0.6) !important;
+}
+
+/* Custom container (tip/warning/danger/...): bo góc đồng bộ */
+.custom-block {
+  border-radius: 12px;
+}
+
+/* ---------------------------------------------------------------------- *
+ * MÀU CHỮ: buộc mọi ngoại lệ dùng accent-cho-text của theme mặc định về
+ * lại đen/trắng thuần. Các selector này trùng scope Vue của VitePress nên
+ * cần !important để thắng specificity của style scoped gốc.
+ * ---------------------------------------------------------------------- */
+
+/* Nav link (active/hover) */
+.VPNavBarMenuLink.active,
+.VPNavBarMenuLink:hover {
+  color: var(--vp-c-text-1) !important;
+}
+
+/* Sidebar link text (hover/active) */
+.VPSidebarItem.level-0.is-link > .item > .link:hover .text,
+.VPSidebarItem.level-1.is-link > .item > .link:hover .text,
+.VPSidebarItem.level-2.is-link > .item > .link:hover .text,
+.VPSidebarItem.level-3.is-link > .item > .link:hover .text,
+.VPSidebarItem.level-4.is-link > .item > .link:hover .text,
+.VPSidebarItem.level-5.is-link > .item > .link:hover .text,
+.VPSidebarItem.level-0.is-active > .item .link > .text,
+.VPSidebarItem.level-1.is-active > .item .link > .text,
+.VPSidebarItem.level-2.is-active > .item .link > .text,
+.VPSidebarItem.level-3.is-active > .item .link > .text,
+.VPSidebarItem.level-4.is-active > .item .link > .text,
+.VPSidebarItem.level-5.is-active > .item .link > .text {
+  color: var(--vp-c-text-1) !important;
+}
+
+/* Feature card "read more" link text */
+.VPFeature .link-text-value {
+  color: var(--vp-c-text-1) !important;
+}
+
+/* Doc footer: nút edit-link & tiêu đề prev/next */
+.edit-link-button,
+.edit-link-button:hover,
+.pager-link .title {
+  color: var(--vp-c-text-1) !important;
+}
+
+/* Prose link: chữ đen/trắng, chỉ gạch chân dùng màu accent (viền/decoration,
+   không phải màu chữ) để vẫn nhận biết được là link */
+.vp-doc a {
+  color: var(--vp-c-text-1) !important;
+  text-decoration-color: rgba(3, 105, 161, 0.55);
+  text-underline-offset: 3px;
+}
+
+.vp-doc a:hover {
+  color: var(--vp-c-text-1) !important;
+  text-decoration-color: var(--vp-c-text-1);
+}
+
+.dark .vp-doc a {
+  text-decoration-color: rgba(56, 189, 248, 0.6);
+}
+
+/* Link/inline-code bên trong custom container */
+.custom-block a,
+.custom-block a:hover,
+.custom-block a:hover > code,
+.custom-block code {
+  color: var(--vp-c-text-1) !important;
+}
+
+/* Token màu cú pháp (Shiki) trong code block: ép về đen/trắng thuần theo
+   yêu cầu, accent chỉ còn ở nền/viền của khối code */
+.vp-doc [class*='language-'] .vp-code span,
+.vp-doc [class*='language-'] pre code span {
+  color: var(--vp-c-text-1) !important;
 }
 
 /* In trang (Ctrl+P / Save as PDF): tránh cắt nội dung tràn khung.
@@ -50,6 +301,7 @@
   }
   .vp-doc div[class*='language-'] {
     overflow-x: visible !important;
+    backdrop-filter: none !important;
   }
   .vp-doc [class*='language-'] pre,
   .vp-doc [class*='language-'] code {
@@ -64,5 +316,65 @@
   }
   .VPDoc {
     padding: 0 !important;
+  }
+}
+
+/* ---------------------------------------------------------------------- *
+ * Hiệu ứng "giọt nước" (droplet ripple) — bắn từ index.ts, chỉ khi click
+ * vào CTA / feature card / nav link điều hướng thành công.
+ * ---------------------------------------------------------------------- */
+
+.vp-droplet-ripple {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 12px;
+  height: 12px;
+  margin-left: -6px;
+  margin-top: -6px;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 9999;
+  background: radial-gradient(
+    circle,
+    rgba(56, 189, 248, 0.55) 0%,
+    rgba(56, 189, 248, 0.25) 40%,
+    rgba(56, 189, 248, 0) 72%
+  );
+  border: 1px solid rgba(56, 189, 248, 0.5);
+  transform: scale(0);
+  opacity: 0.9;
+  animation: vp-droplet-expand 650ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  will-change: transform, opacity;
+}
+
+.dark .vp-droplet-ripple {
+  background: radial-gradient(
+    circle,
+    rgba(125, 211, 252, 0.55) 0%,
+    rgba(125, 211, 252, 0.22) 40%,
+    rgba(125, 211, 252, 0) 72%
+  );
+  border-color: rgba(125, 211, 252, 0.5);
+}
+
+@keyframes vp-droplet-expand {
+  0% {
+    transform: scale(0);
+    opacity: 0.9;
+  }
+  60% {
+    opacity: 0.5;
+  }
+  100% {
+    transform: scale(18);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .vp-droplet-ripple {
+    display: none !important;
+    animation: none !important;
   }
 }
