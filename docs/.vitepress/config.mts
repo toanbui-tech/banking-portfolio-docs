@@ -33,6 +33,7 @@ export default defineConfig({
       },
       { text: 'Thiết kế & ADRs', link: '/adr/' },
       { text: 'Nhật ký (Devlog)', link: '/devlog/' },
+      { text: 'Trạng thái dự án', link: '/project-status' },
       { text: 'GitHub', link: 'https://github.com/toanbui-tech' }
     ],
 

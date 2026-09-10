@@ -27,6 +27,10 @@ features:
     details: Lộ trình xây dựng 3-6 tháng, cùng nhật ký tiến độ theo từng giai đoạn — cập nhật trung thực khi triển khai, không phải trước.
 ---
 
+<div class="status-cta-row">
+  <StatusCta />
+</div>
+
 ## Tổng quan
 
 Đây là hai hệ thống mô phỏng nghiệp vụ ngân hàng lõi, xây dựng bằng Java/Spring Boot theo [lộ trình](/roadmap) 3-6 tháng. Mỗi hệ thống tập trung vào một nhóm vấn đề kỹ thuật riêng:
