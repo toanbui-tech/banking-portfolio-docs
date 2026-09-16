@@ -7,6 +7,9 @@ hero:
   tagline: "Hai hệ thống mô phỏng hạ tầng ngân hàng bằng Java/Spring: Double-Entry Core Banking Ledger & ISO 20022 Interbank Payment Gateway"
   actions:
     - theme: brand
+      text: "Xem trạng thái dự án"
+      link: /project-status
+    - theme: alt
       text: "Xem lộ trình xây dựng"
       link: /roadmap
     - theme: alt
@@ -26,10 +29,6 @@ features:
   - title: Lộ trình & Nhật ký tiến độ
     details: Lộ trình xây dựng 3-6 tháng, cùng nhật ký tiến độ theo từng giai đoạn — cập nhật trung thực khi triển khai, không phải trước.
 ---
-
-<div class="status-cta-row">
-  <StatusCta />
-</div>
 
 ## Tổng quan
 

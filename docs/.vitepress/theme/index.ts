@@ -1,6 +1,5 @@
 import type { Theme } from 'vitepress'
 import DefaultTheme from 'vitepress/theme'
-import StatusCta from './components/StatusCta.vue'
 import './custom.css'
 
 const RIPPLE_CLASS = 'vp-droplet-ripple'
@@ -120,9 +119,7 @@ function attachRippleListeners() {
 
 export default {
   extends: DefaultTheme,
-  enhanceApp({ app, router }) {
-    app.component('StatusCta', StatusCta)
-
+  enhanceApp({ router }) {
     if (!isBrowser()) return
 
     attachScrollCondense()

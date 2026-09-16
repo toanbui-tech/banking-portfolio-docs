@@ -53,10 +53,6 @@
   --glass-blur: blur(20px) saturate(180%);
   --glass-border-light: rgba(255, 255, 255, 0.5);
   --glass-shadow: 0 8px 32px rgba(3, 105, 161, 0.12), 0 1px 2px rgba(3, 105, 161, 0.08);
-
-  /* Gradient icon cho Status CTA — chỉ dùng trên stroke SVG, không phải text */
-  --status-cta-grad-from: #0369a1;
-  --status-cta-grad-to: #0f766e;
 }
 
 .dark {
@@ -91,9 +87,6 @@
 
   --glass-border-light: rgba(255, 255, 255, 0.08);
   --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.45), 0 1px 2px rgba(0, 0, 0, 0.3);
-
-  --status-cta-grad-from: #38bdf8;
-  --status-cta-grad-to: #2dd4bf;
 }
 
 /* Nền trang: gradient pastel rất nhẹ, không ảnh hưởng tới contrast của text */
@@ -256,60 +249,6 @@ html.vp-scrolled .VPNavBarTitle .title {
   transform: scale(0.97);
 }
 
-/* Status CTA (trang chủ): nút phụ ngay dưới hero, dẫn tới /project-status */
-.status-cta-row {
-  display: flex;
-  justify-content: center;
-  margin: -24px 0 32px;
-  padding: 0 24px;
-}
-
-.status-cta {
-  margin-top: 12px;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 18px;
-  border-radius: 999px;
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--vp-c-text-1) !important;
-  text-decoration: none !important;
-  background: rgba(255, 255, 255, 0.55);
-  backdrop-filter: blur(12px) saturate(160%);
-  -webkit-backdrop-filter: blur(12px) saturate(160%);
-  border: 1px solid var(--vp-button-brand-border);
-  box-shadow: 0 4px 16px rgba(3, 105, 161, 0.12);
-  transition: transform 0.2s ease, box-shadow 0.25s ease, border-color 0.25s ease,
-    background-color 0.25s ease;
-}
-
-.dark .status-cta {
-  background: rgba(30, 41, 59, 0.55);
-}
-
-.status-cta:hover {
-  transform: translateY(-1px) scale(1.02);
-  border-color: var(--vp-button-brand-hover-border);
-  box-shadow: 0 8px 22px rgba(3, 105, 161, 0.18);
-}
-
-.status-cta:active {
-  transform: scale(0.97);
-  transition-duration: 0.1s;
-}
-
-.status-cta-icon {
-  flex-shrink: 0;
-}
-
-@media (max-width: 640px) {
-  .status-cta {
-    width: 100%;
-    justify-content: center;
-  }
-}
-
 /* Badge trạng thái năng lực (trang /project-status) */
 .status-badge {
   display: inline-block;
@@ -331,13 +270,38 @@ html.vp-scrolled .VPNavBarTitle .title {
   border: 1px solid rgba(148, 163, 184, 0.45);
 }
 
-/* Bảng: bo góc đồng bộ với card/code block */
+.status-badge.wip {
+  background: rgba(217, 119, 6, 0.16);
+  border: 1px solid rgba(217, 119, 6, 0.45);
+}
+
+/* Bảng: bo góc đồng bộ với card/code block. */
 .vp-doc table {
   display: block;
   overflow-x: auto;
   max-width: 100%;
   border-radius: 12px;
   border: 1px solid var(--vp-c-divider);
+}
+
+
+/* Aside-curtain: hiệu ứng fade mặc định của VitePress hard-code màu nền
+   solid (trắng ở light mode) để che nội dung cuộn phía dưới mục lục —
+   nhưng nền trang ở đây là gradient pastel/tối, không khớp màu, nên lộ ra
+   thành một khối đục thay vì fade mượt. Tắt hẳn vì không cần thiết với
+   layout hiện tại (outline thường ngắn, không cần che). */
+.aside-curtain {
+  display: none;
+}
+
+/* Mục lục trên trang (outline aside): cho tiêu đề dài xuống dòng thay vì
+   bị cắt bằng "..." — VitePress mặc định dùng nowrap + ellipsis, không phù
+   hợp với tiêu đề tiếng Việt dài trong site này. */
+.outline-link {
+  white-space: normal !important;
+  overflow: visible !important;
+  text-overflow: clip !important;
+  line-height: 1.4;
 }
 
 .vp-doc th:first-child,

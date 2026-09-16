@@ -94,7 +94,10 @@ export default defineConfig({
             { text: 'ADR-002: Double-Entry Immutable Ledger', link: '/adr/ADR-002-double-entry-ledger-immutable-pattern' },
             { text: 'ADR-003: Pessimistic vs Optimistic Locking', link: '/adr/ADR-003-pessimistic-vs-optimistic-locking-hot-accounts' },
             { text: 'ADR-004: Idempotency', link: '/adr/ADR-004-idempotency-duplicate-message-prevention' },
-            { text: 'ADR-005: Spring Batch Chunk EOD Settlement', link: '/adr/ADR-005-spring-batch-chunk-vs-tasklet-eod' }
+            { text: 'ADR-005: Spring Batch Chunk EOD Settlement', link: '/adr/ADR-005-spring-batch-chunk-vs-tasklet-eod' },
+            { text: 'ADR-006: Derived vs Stored Balance', link: '/adr/ADR-006-derived-balance-vs-stored-balance' },
+            { text: 'ADR-007: Pessimistic Locking khi rút tiền', link: '/adr/ADR-007-pessimistic-locking-withdraw' },
+            { text: 'ADR-008: Transaction Aggregate Root', link: '/adr/ADR-008-transaction-aggregate-root' }
           ]
         }
       ],
@@ -139,7 +142,8 @@ export default defineConfig({
     },
 
     lastUpdated: {
-      text: 'Cập nhật lần cuối'
+      text: 'Cập nhật lần cuối',
+      formatOptions: { dateStyle: 'medium', timeStyle: 'short', forceLocale: true }
     }
   }
 })
