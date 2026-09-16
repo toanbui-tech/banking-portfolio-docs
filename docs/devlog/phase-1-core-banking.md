@@ -16,6 +16,7 @@ Xem mục tiêu đầy đủ của giai đoạn này tại [Lộ trình — Giai
 - Unit test `AccountServiceTest` (1 test case) — BUILD SUCCESS, Tests run: 4, Failures: 0, Errors: 0.
 - `AccountService.withdraw()` — Pessimistic Locking (`SELECT ... FOR UPDATE`) ngăn race condition khi rút tiền đồng thời — chi tiết ở mục [Pessimistic Locking — ngăn race condition khi rút tiền](#pessimistic-locking--ngăn-race-condition-khi-rút-tiền) bên dưới.
 - Unit test race condition `withdraw_shouldPreventOverdraft_whenConcurrentRequests` — BUILD SUCCESS, Tests run: 5, Failures: 0, Errors: 0.
+- **(2026-09-16)** DDD Refactor — `Money` value object, `Transaction` aggregate root, và ADR-008 — chi tiết ở mục [DDD Refactor](#ddd-refactor--money-value-object-và-transaction-aggregate-root) bên dưới.
 
 ## Thiết lập môi trường
 
@@ -106,6 +107,33 @@ Kết quả cuối: `Tests run: 3, Failures: 0, Errors: 0` — BUILD SUCCESS.
 - Viết test `withdraw_shouldPreventOverdraft_whenConcurrentRequests`: giả lập 2 thread cùng rút 80.00 từ tài khoản có 100.00, dùng `ExecutorService` + `CountDownLatch` + `AtomicInteger` để đếm số giao dịch thành công. Xác nhận đúng 1 trong 2 thread thành công.
 - Kết quả: `Tests run: 5, Failures: 0, Errors: 0` — BUILD SUCCESS. Log Hibernate xác nhận cơ chế khóa hoạt động đúng (2 thread được tuần tự hóa, không chạy song song trên cùng account).
 - Đã viết ADR-007 ghi lại lý do chọn Pessimistic thay vì Optimistic Locking cho bài toán này (xem [docs/adr/](/adr/)).
+
+## DDD Refactor — Money value object và Transaction aggregate root
+
+**(2026-09-16)** Refactor tầng domain theo hướng DDD, qua 3 bước liên tiếp trong ngày.
+
+### Bước 1 — Money value object
+
+- Thêm `Money` (package `shared/money`) — immutable, bọc `BigDecimal amount` + `Currency`; `add()`/`subtract()` throw `CurrencyMismatchException` nếu 2 `Money` khác loại tiền tệ.
+- `LedgerEntry.amount` và `Account.currency` chuyển từ `BigDecimal`/`String` thô sang dùng `Money`/`Currency`.
+- `LedgerService.validateBalanced()` giờ cộng tổng qua `Money` — một giao dịch trộn lẫn nhiều loại tiền tệ giữa các entry sẽ fail ngay (do `CurrencyMismatchException`) thay vì cộng sai lặng lẽ.
+- Migration `V3__add_currency_to_ledger_entries.sql` thêm cột `ledger_entries.currency`, backfill từ `accounts.currency`.
+- Test: `MoneyTest` (85 dòng), cập nhật `AccountServiceTest`, `LedgerServiceTest`.
+
+### Bước 2 — Transaction aggregate root
+
+- Thêm entity `Transaction` (package `ledger/`) làm Aggregate Root cho nhóm `LedgerEntry`: `Transaction.record(entries, createdBy)` validate cân bằng Nợ=Có ngay trong hàm dựng; `Transaction.reverse(reversedBy)` tạo giao dịch hoàn tác đối xứng. `Transaction.id` tự sinh (`UUID.randomUUID()`) ngay trong constructor thay vì để DB sinh qua `@GeneratedValue`, đúng nguyên tắc DDD — Aggregate tự chịu trách nhiệm tạo ra chính nó ở trạng thái hợp lệ.
+- `LedgerService` được rút gọn, không còn tự validate cân bằng — trách nhiệm đó chuyển hẳn vào `Transaction`.
+- Migration `V4__create_transactions_table.sql` tạo bảng `transactions`, backfill từ dữ liệu `ledger_entries` cũ.
+- **Bug phát hiện khi debug:** sau khi implement, `Transaction` lưu được vào DB nhưng cascade sang `LedgerEntry` không chạy — sinh ra bản ghi rỗng, không đúng dữ liệu, không có exception nào được throw (lỗi "âm thầm sai"). Nguyên nhân: Spring Data JPA mặc định coi một entity là "đã tồn tại trong DB" nếu ID của nó khác `null` khi `save()` được gọi — vì `Transaction.id` được gán thủ công trong constructor, JPA hiểu nhầm đây là update (gọi `merge()`) thay vì insert mới (`persist()`), khiến cascade `PERSIST` không kích hoạt đúng.
+- **Fix:** `Transaction` implement `Persistable<UUID>`, tự định nghĩa `isNew()` (qua trường `@Transient boolean isNew`, reset về `false` ở `@PostLoad`/`@PostPersist`) để báo cho JPA biết chính xác đây là entity mới, bất kể ID đã có giá trị hay chưa. Sau fix: 21/21 test pass, cascade hoạt động đúng.
+- Test: `TransactionTest` (86 dòng).
+- Quyết định thiết kế đầy đủ (phương án cân nhắc A/B, lý do chọn, 2 vấn đề kỹ thuật gặp phải — lỗi `MIN(uuid)` trên Postgres và `Persistable<UUID>` pitfall) đã ghi lại tại [ADR-008](/adr/ADR-008-transaction-aggregate-root).
+
+### Bước 3 — Bổ sung test coverage cho lỗi phát hiện được
+
+- Trong lúc build `Transaction` aggregate, phát hiện bug: `createdBy` không được set đúng trên một số đường đi — lỗi này trước đó chỉ bị chặn bởi ràng buộc `NOT NULL` của DB ở tầng integration test, không có assertion nào ở tầng unit test bắt được sớm hơn.
+- Thêm assertion tường minh cho `createdBy` trên cả 2 happy path (`Transaction.record()` và `Transaction.reverse()`) trong `TransactionTest`, để một regression tương tự sau này fail ngay ở unit test, không cần chờ tới DB.
 
 ## Khó khăn & giải pháp
 

@@ -122,6 +122,15 @@ Bắt đầu từ đây vì đây là domain nền tảng, dễ tiếp cận hơ
 - Optimistic vs pessimistic locking — khi nào dùng cái nào
 - Audit trail design — vì sao ngân hàng không bao giờ "sửa" bản ghi, chỉ "thêm" bản ghi bù trừ
 
+### DDD Refactor — hoàn thành 2026-09-16 {#ddd-refactor}
+
+Refactor tầng domain của Core Banking theo hướng DDD, thực hiện qua 2 bước liên tiếp trong ngày:
+
+- **Money value object** — bọc `BigDecimal` + `Currency`, `add()`/`subtract()` throw `CurrencyMismatchException` khi lệch loại tiền; `LedgerEntry`/`Account` chuyển sang dùng `Money`/`Currency` thay vì `BigDecimal`/`String` thô, giúp `LedgerService.validateBalanced()` phát hiện ngay giao dịch trộn lẫn nhiều loại tiền tệ thay vì cộng sai lặng lẽ.
+- **Transaction aggregate root** — thêm entity `Transaction` (implements `Persistable<UUID>`) làm aggregate root cho nhóm `LedgerEntry`, enforce bất biến Nợ=Có ngay tại tầng domain thay vì chỉ ở service; bổ sung migration `V4__create_transactions_table.sql` và test `TransactionTest`.
+
+Quyết định thiết kế đầy đủ: [ADR-008](/adr/ADR-008-transaction-aggregate-root). Nhật ký chi tiết từng bước: [Devlog — Giai đoạn 1](/devlog/phase-1-core-banking#ddd-refactor--money-value-object-và-transaction-aggregate-root).
+
 ---
 
 ## Giai đoạn 2 — Tháng 3–4: Interbank Payment Gateway (Sub-project A) {#giai-doan-2}

@@ -11,6 +11,8 @@ description: Tóm tắt năng lực nghiệp vụ của Core Banking System theo
 |---|---|---|
 | Quản lý tài khoản khách hàng | <span class="status-badge done">Hoàn thành</span> | Hệ thống có thể tạo và theo dõi tài khoản của khách hàng |
 | Ghi nhận giao dịch tài chính chính xác | <span class="status-badge done">Hoàn thành</span> | Mọi giao dịch được ghi sổ kép — đảm bảo tiền vào/ra luôn cân đối, không thể sai lệch số liệu |
+| Đảm bảo tính toàn vẹn dữ liệu đa tiền tệ | <span class="status-badge done">Hoàn thành</span> | Hệ thống tự động ngăn chặn việc trộn lẫn nhiều loại tiền tệ trong cùng một giao dịch, tránh sai sót tài chính nghiêm trọng |
+| Quản lý giao dịch như một đơn vị nghiệp vụ hoàn chỉnh | <span class="status-badge done">Hoàn thành</span> | Mỗi giao dịch được xử lý như một khối thống nhất, đảm bảo luôn cân đối thu-chi trước khi được chấp nhận vào hệ thống |
 | Tính số dư tài khoản theo thời gian thực | <span class="status-badge done">Hoàn thành</span> | Khách hàng luôn xem được số dư chính xác tại mọi thời điểm |
 | Ngăn chặn gian lận khi rút tiền đồng thời | <span class="status-badge done">Hoàn thành</span> | Hệ thống chống được tình huống 2 giao dịch rút tiền cùng lúc gây sai lệch số dư |
 | Truy vết lịch sử thay đổi & hoàn tác giao dịch | <span class="status-badge todo">Chưa triển khai</span> | Sẽ cho phép xác định ai thực hiện giao dịch và hoàn tác khi cần, phục vụ kiểm toán |
@@ -19,4 +21,4 @@ description: Tóm tắt năng lực nghiệp vụ của Core Banking System theo
 | Vận hành trên hạ tầng cơ sở dữ liệu doanh nghiệp | <span class="status-badge todo">Chưa triển khai</span> | Sẽ minh chứng khả năng làm việc với hệ quản trị CSDL dùng phổ biến trong ngành ngân hàng |
 | Triển khai tự động, dễ mở rộng | <span class="status-badge todo">Chưa triển khai</span> | Sẽ cho phép hệ thống chạy ổn định và mở rộng dễ dàng trên môi trường thật |
 
-<small>Cập nhật lần cuối theo tiến độ devlog: Giai đoạn 1 — nền tảng Account/Ledger/Transaction đã hoàn thành và có test tự động; các năng lực nâng cao (audit trail, xử lý bất đồng bộ, cache, hạ tầng doanh nghiệp) đang trong kế hoạch, chưa bắt đầu triển khai.</small>
+<small>Cập nhật lần cuối theo commit ngày 2026-09-16: nền tảng Account/Ledger/Transaction đã hoàn thành và có test tự động, bổ sung Money value object (đa tiền tệ an toàn) và Transaction aggregate root (đảm bảo bất biến Nợ=Có ở tầng domain); các năng lực nâng cao (xử lý bất đồng bộ, cache, hạ tầng doanh nghiệp) đang trong kế hoạch, chưa bắt đầu triển khai.</small>
