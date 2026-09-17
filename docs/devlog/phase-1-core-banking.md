@@ -19,6 +19,7 @@ Xem mục tiêu đầy đủ của giai đoạn này tại [Lộ trình — Giai
 - **(2026-09-16)** DDD Refactor — `Money` value object, `Transaction` aggregate root, và ADR-008 — chi tiết ở mục [DDD Refactor](#ddd-refactor--money-value-object-và-transaction-aggregate-root) bên dưới.
 - **(2026-09-17)** Outbox Pattern + Kafka event publishing — `Transaction` phát domain event, 4 consumer độc lập (Audit/Compliance, Fraud Detection, Notification, Reporting), và ADR-009 — chi tiết ở mục [Outbox Pattern & Kafka Event Publishing](#outbox-pattern--kafka-event-publishing) bên dưới.
 - **(2026-09-17)** Redis cache cho `AccountService.getBalance()`, invalidation qua AFTER_COMMIT, và ADR-010 — chi tiết ở mục [Redis Cache cho Account Balance](#redis-cache-cho-account-balance) bên dưới.
+- **(2026-09-17)** Oracle dual-profile support (45/45 test pass trên cả 2 database) và fix `Money` scale cố định — ADR-011, ADR-012 — chi tiết ở mục [Oracle Dual-Profile & Fix Money Scale](#oracle-dual-profile--fix-money-scale) bên dưới.
 
 ## Thiết lập môi trường
 
@@ -196,6 +197,39 @@ Quyết định thiết kế đầy đủ (Context, Options Considered A/B, Deci
 - Test regression + concurrency test cũ của `withdraw()` vẫn pass — xác nhận cache không ảnh hưởng invariant chống overdraft. Integration test riêng xác nhận balance không stale sau giao dịch mới.
 
 Quyết định thiết kế đầy đủ (Context, 2 Options Considered, Decision, Consequences kèm 2 vấn đề kỹ thuật trên) đã ghi lại tại [ADR-010](/adr/ADR-010-redis-cache-account-balance).
+
+## Oracle Dual-Profile & Fix Money Scale
+
+**(2026-09-17)** Cần chứng minh khả năng làm việc với hệ quản trị CSDL doanh nghiệp (Oracle phổ biến trong ngân hàng Việt Nam) mà không ảnh hưởng đến 45 test đang pass trên PostgreSQL. Triển khai qua 4 bước, phát sinh thêm 1 bug thật cần fix riêng.
+
+### Bước 1 — Setup Oracle
+
+- Thêm service `oracle` (`gvenzl/oracle-free:23-slim-faststart`) vào `docker-compose.yml`, host port 1522 (container port 1521 — cùng lý do đổi port như Postgres/Redis trước đó, tránh xung đột port mặc định trên máy dev). Container Oracle khởi động chậm hơn đáng kể so với Postgres/Kafka/Redis dù đã dùng bản `slim-faststart`.
+- Thêm dependency `ojdbc11` (driver JDBC), `flyway-database-oracle`.
+- `application-oracle.properties` (profile `oracle`, kích hoạt qua `--spring.profiles.active=oracle`) — override datasource/driver, trỏ `spring.flyway.locations=classpath:db/migration/oracle`. Chạy song song với profile mặc định (Postgres), không thay thế.
+- Viết `README.md` mới, ghi lại port mapping, cách chạy app/test theo từng profile, cấu trúc migration.
+
+### Bước 2 — Tách migration theo vendor & viết lại 7 file cho Oracle
+
+- Tách `db/migration/` thành `db/migration/postgresql/` (V1-V7 cũ, chuyển nguyên vẹn) và `db/migration/oracle/` (V1-V7 viết lại theo dialect Oracle).
+- 4 điểm khác biệt dialect chính:
+  1. **UUID → `RAW(16)`** cho mọi cột id/khóa ngoại.
+  2. **`UPDATE ... FROM`** (cú pháp riêng Postgres) → correlated subquery ở V3, → `MERGE INTO` ở V4 (backfill `reversal_of_transaction_id`).
+  3. **`JSONB` → `JSON`** (kiểu JSON native của Oracle 23ai).
+  4. **Partial index** (`CREATE INDEX ... WHERE published_at IS NULL`) → function-based index tương đương (`CASE WHEN published_at IS NULL THEN created_at END`), vì Oracle không hỗ trợ partial index.
+- Phát hiện phụ: `columnDefinition = "jsonb"` khai báo trên `OutboxEvent.java` không cần sửa cho Oracle, vì `ddl-auto=validate` không dùng `columnDefinition` để validate thực tế — `@JdbcTypeCode(SqlTypes.JSON)` tự thích ứng theo dialect đang chạy.
+
+### Bước 3 — Chạy test trên cả 2 profile, phát hiện bug Money
+
+- Chạy 45 test hiện có trên Oracle (`./mvnw test -Dspring.profiles.active=oracle`) — phát hiện Oracle `NUMBER` không giữ scale cố định lúc đọc (khác Postgres `NUMERIC` giữ nguyên scale khai báo, hành vi chuẩn của Oracle, không phải bug CSDL).
+- Thử fix bằng `Currency.getDefaultFractionDigits()` (chuẩn ISO 4217) thì phát hiện vấn đề sâu hơn: VND theo ISO 4217 có 0 chữ số thập phân, nhưng toàn bộ domain model project (từ Audit Trail đến Redis) đã ngầm định VND có 2 chữ số thập phân xuyên suốt — dùng đúng chuẩn ISO 4217 sẽ throw exception cho các giá trị VND có phần thập phân đã tồn tại trong test/dữ liệu từ 4 tính năng trước.
+- Quyết định: cố định `scale = 2` cho mọi currency thay vì theo ISO 4217 tuyệt đối. Sửa `Money.java`: constructor riêng enforce `setScale(2, RoundingMode.UNNECESSARY)`, mọi đường tạo `Money` (`of`, `zero`, `add`, `subtract`) đều đi qua constructor này nên đều được chuẩn hóa tự động.
+- Quyết định thiết kế đầy đủ (2 Options Considered, lý do chọn, rủi ro đã ghi nhận cho multi-currency thật sau này) đã ghi lại tại [ADR-012](/adr/ADR-012-money-fixed-scale).
+
+### Bước 4 — Kết quả
+
+- 45/45 test pass trên cả 2 database (Postgres và Oracle), không cần sửa test theo profile — khác biệt CSDL xử lý hoàn toàn ở tầng cấu hình/migration, không rò lên tầng test.
+- Quyết định thiết kế Oracle dual-profile đầy đủ (Options Considered, 5 vấn đề kỹ thuật khi viết lại migration) đã ghi lại tại [ADR-011](/adr/ADR-011-oracle-dual-profile-support).
 
 ## Khó khăn & giải pháp
 

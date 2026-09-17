@@ -150,6 +150,17 @@ Cache-aside cho `AccountService.getBalance()`, không đánh đổi invariant ch
 
 Quyết định thiết kế đầy đủ: [ADR-010](/adr/ADR-010-redis-cache-account-balance). Nhật ký chi tiết từng bước: [Devlog — Giai đoạn 1](/devlog/phase-1-core-banking#redis-cache-cho-account-balance).
 
+### Oracle Dual-Profile Support — hoàn thành 2026-09-17 {#oracle-dual-profile}
+
+Chứng minh khả năng vận hành trên hạ tầng CSDL doanh nghiệp (Oracle) song song với PostgreSQL, cùng 1 codebase:
+
+- **Dual-profile** — `db/migration/postgresql/` và `db/migration/oracle/` tách riêng hoàn toàn (V1-V7 mỗi bộ), Flyway `locations` cấu hình theo Spring Profile (`application.properties` / `application-oracle.properties`); Oracle Database Free qua Docker, port 1522.
+- **Viết lại 7 migration theo dialect Oracle** — UUID → `RAW(16)`, `UPDATE ... FROM` → correlated subquery / `MERGE INTO`, `JSONB` → `JSON`, partial index → function-based index.
+- **Phát hiện & fix bug Money** — chạy test trên Oracle lộ ra `Money` chưa tự chuẩn hóa scale (Oracle `NUMBER` không giữ scale cố định như Postgres `NUMERIC`); cố định `scale = 2` cho mọi currency trong `Money.java`.
+- **Kết quả:** 45/45 test pass nguyên vẹn trên cả 2 database, không cần sửa test theo profile.
+
+Quyết định thiết kế đầy đủ: [ADR-011](/adr/ADR-011-oracle-dual-profile-support) (dual-profile), [ADR-012](/adr/ADR-012-money-fixed-scale) (fix Money scale). Nhật ký chi tiết từng bước: [Devlog — Giai đoạn 1](/devlog/phase-1-core-banking#oracle-dual-profile-fix-money-scale).
+
 ---
 
 ## Giai đoạn 2 — Tháng 3–4: Interbank Payment Gateway (Sub-project A) {#giai-doan-2}
