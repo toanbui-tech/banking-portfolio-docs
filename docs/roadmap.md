@@ -131,6 +131,16 @@ Refactor tầng domain của Core Banking theo hướng DDD, thực hiện qua 2
 
 Quyết định thiết kế đầy đủ: [ADR-008](/adr/ADR-008-transaction-aggregate-root). Nhật ký chi tiết từng bước: [Devlog — Giai đoạn 1](/devlog/phase-1-core-banking#ddd-refactor--money-value-object-và-transaction-aggregate-root).
 
+### Outbox Pattern + Kafka Event Publishing — hoàn thành 2026-09-17 {#outbox-kafka}
+
+Thông báo sự kiện `Transaction` (mới/hoàn tác) cho các hệ thống khác qua Kafka, không đánh đổi rủi ro Dual Write giữa ghi DB và gửi message:
+
+- **Outbox Pattern** — `Transaction` tự raise domain event, `LedgerService` lưu vào bảng `outbox_events` trong cùng transaction DB với dữ liệu nghiệp vụ; tiến trình `OutboxEventPublisher` (`@Scheduled`) đọc và gửi lên Kafka sau, đảm bảo tính nguyên tử giữa ghi nghiệp vụ và ghi sự kiện.
+- **Audit/Compliance Consumer** — ghi 1 dòng `compliance_records` cho mỗi `LedgerEntry`, idempotent qua bảng `processed_events` (chống xử lý trùng do Kafka at-least-once delivery).
+- **3 PoC Consumer** — Fraud Detection, Notification, Reporting, mỗi consumer 1 `groupId` riêng trên cùng topic `transaction-posted-topic`, chứng minh kiến trúc publish/subscribe hoạt động cho nhiều hệ thống độc lập.
+
+Quyết định thiết kế đầy đủ: [ADR-009](/adr/ADR-009-outbox-pattern-kafka-event-publishing). Nhật ký chi tiết từng bước: [Devlog — Giai đoạn 1](/devlog/phase-1-core-banking#outbox-pattern-kafka-event-publishing).
+
 ---
 
 ## Giai đoạn 2 — Tháng 3–4: Interbank Payment Gateway (Sub-project A) {#giai-doan-2}

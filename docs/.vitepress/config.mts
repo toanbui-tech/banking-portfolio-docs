@@ -97,7 +97,8 @@ export default defineConfig({
             { text: 'ADR-005: Spring Batch Chunk EOD Settlement', link: '/adr/ADR-005-spring-batch-chunk-vs-tasklet-eod' },
             { text: 'ADR-006: Derived vs Stored Balance', link: '/adr/ADR-006-derived-balance-vs-stored-balance' },
             { text: 'ADR-007: Pessimistic Locking khi rút tiền', link: '/adr/ADR-007-pessimistic-locking-withdraw' },
-            { text: 'ADR-008: Transaction Aggregate Root', link: '/adr/ADR-008-transaction-aggregate-root' }
+            { text: 'ADR-008: Transaction Aggregate Root', link: '/adr/ADR-008-transaction-aggregate-root' },
+            { text: 'ADR-009: Outbox Pattern & Kafka Event Publishing', link: '/adr/ADR-009-outbox-pattern-kafka-event-publishing' }
           ]
         }
       ],

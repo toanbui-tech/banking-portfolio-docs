@@ -17,6 +17,7 @@ Xem mục tiêu đầy đủ của giai đoạn này tại [Lộ trình — Giai
 - `AccountService.withdraw()` — Pessimistic Locking (`SELECT ... FOR UPDATE`) ngăn race condition khi rút tiền đồng thời — chi tiết ở mục [Pessimistic Locking — ngăn race condition khi rút tiền](#pessimistic-locking--ngăn-race-condition-khi-rút-tiền) bên dưới.
 - Unit test race condition `withdraw_shouldPreventOverdraft_whenConcurrentRequests` — BUILD SUCCESS, Tests run: 5, Failures: 0, Errors: 0.
 - **(2026-09-16)** DDD Refactor — `Money` value object, `Transaction` aggregate root, và ADR-008 — chi tiết ở mục [DDD Refactor](#ddd-refactor--money-value-object-và-transaction-aggregate-root) bên dưới.
+- **(2026-09-17)** Outbox Pattern + Kafka event publishing — `Transaction` phát domain event, 4 consumer độc lập (Audit/Compliance, Fraud Detection, Notification, Reporting), và ADR-009 — chi tiết ở mục [Outbox Pattern & Kafka Event Publishing](#outbox-pattern--kafka-event-publishing) bên dưới.
 
 ## Thiết lập môi trường
 
@@ -134,6 +135,38 @@ Kết quả cuối: `Tests run: 3, Failures: 0, Errors: 0` — BUILD SUCCESS.
 
 - Trong lúc build `Transaction` aggregate, phát hiện bug: `createdBy` không được set đúng trên một số đường đi — lỗi này trước đó chỉ bị chặn bởi ràng buộc `NOT NULL` của DB ở tầng integration test, không có assertion nào ở tầng unit test bắt được sớm hơn.
 - Thêm assertion tường minh cho `createdBy` trên cả 2 happy path (`Transaction.record()` và `Transaction.reverse()`) trong `TransactionTest`, để một regression tương tự sau này fail ngay ở unit test, không cần chờ tới DB.
+
+## Outbox Pattern & Kafka Event Publishing
+
+**(2026-09-17)** Cần thông báo cho các hệ thống khác khi có `Transaction` mới hoặc bị hoàn tác, phục vụ 4 mục đích nghiệp vụ: Audit/Compliance, Notification, Fraud Detection, Reporting. Triển khai qua 3 bước.
+
+### Bước 1 — Outbox Pattern
+
+- `Transaction` (aggregate root) tự raise domain event (`TransactionPostedEvent`, `TransactionReversedEvent`) trong `record()`/`reverse()`, expose `pullDomainEvents()` — nhất quán với nguyên tắc DDD đã áp dụng ở [ADR-008](/adr/ADR-008-transaction-aggregate-root).
+- `LedgerService` pull events sau khi `save()` thành công, map sang `OutboxEvent`, lưu vào bảng `outbox_events` trong **cùng transaction DB** với `Transaction`/`LedgerEntry` — tránh rủi ro Dual Write (ghi DB thành công nhưng gửi Kafka thất bại, hoặc ngược lại).
+- `OutboxEventPublisher` (`@Scheduled`, mặc định 5s/lần) đọc các event chưa publish, gửi lên topic `transaction-posted-topic` (key = `transactionId` để giữ thứ tự), rồi đánh dấu `published_at`.
+- Payload JSON self-contained: `eventId` (riêng biệt với `transactionId`, dùng cho idempotency), `transactionId`, `createdBy`, `occurredAt`, `entries[]`, `eventType` nhúng trực tiếp vào payload (không dùng Kafka header).
+- Migration `V5__create_outbox_events_table.sql`.
+
+### Bước 2 — Audit Compliance Consumer (idempotent)
+
+- `AuditComplianceConsumer` lắng nghe `transaction-posted-topic` (groupId `audit-compliance-group`), ghi vào bảng `compliance_records` — **1 dòng cho mỗi `LedgerEntry`** (không gộp theo transaction), vì compliance/audit ngân hàng thật cần biết account cụ thể nào liên quan (debit/credit), không chỉ tổng giá trị giao dịch.
+- Idempotent qua bảng `processed_events` (khóa theo `eventId`) — bắt buộc vì Kafka chỉ đảm bảo *at-least-once delivery*, message có thể bị gửi lại.
+- Migration `V6__create_processed_events_table.sql`, `V7__create_compliance_records_table.sql`.
+- Test: `AuditComplianceConsumerIntegrationTest`, `TransactionToComplianceEndToEndTest` (end-to-end thật, không mock Kafka).
+
+### Bước 3 — 3 PoC Consumer
+
+- `FraudDetectionConsumer`, `NotificationConsumer`, `ReportingConsumer` — mỗi consumer 1 `groupId` riêng (`fraud-detection-group`, `notification-group`, `reporting-group`) trên cùng topic, chỉ log để chứng minh kiến trúc publish/subscribe hoạt động đúng cho nhiều consumer độc lập — không có logic nghiệp vụ thật (không có rule phát hiện gian lận/gửi thông báo/tạo báo cáo thật).
+
+### Vấn đề kỹ thuật gặp phải
+
+1. **Jackson 3, không phải Jackson 2.** Spring Boot 4.1.1 dùng `tools.jackson.*` — phải dùng `JacksonJsonSerializer` thay vì `JsonSerializer`, thêm dependency `spring-boot-starter-json` riêng.
+2. **Bẫy nghiêm trọng:** Spring Boot chỉ nạp 1 file `application.properties` đầu tiên tìm thấy, không merge main + test — nếu tạo file `application-test.properties` riêng, nó ghi đè toàn bộ cấu hình DB/Flyway thay vì bổ sung. Fix bằng `@SpringBootTest(properties = ...)` inline trong annotation.
+3. **Phát hiện quan trọng nhất:** raw `spring-kafka` không đủ để Spring Boot 4 tự động cấu hình bean `KafkaTemplate` — cần thêm `spring-boot-starter-kafka`. Lỗi bị che giấu suốt Bước 1 vì `OutboxEventPublisher` luôn bị tắt trong test (`outbox.publisher.enabled=false`), chỉ lộ ra khi viết end-to-end test thật không mock.
+4. **Testcontainers 2.x đổi tên artifact** `testcontainers-kafka` (khác tiền tố so với 1.x) — gây lỗi "version is missing" khó hiểu lúc đầu.
+
+Quyết định thiết kế đầy đủ (Context, Options Considered A/B, Decision, Consequences kèm 4 vấn đề kỹ thuật trên) đã ghi lại tại [ADR-009](/adr/ADR-009-outbox-pattern-kafka-event-publishing).
 
 ## Khó khăn & giải pháp
 
