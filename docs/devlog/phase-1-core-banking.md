@@ -18,6 +18,7 @@ Xem mục tiêu đầy đủ của giai đoạn này tại [Lộ trình — Giai
 - Unit test race condition `withdraw_shouldPreventOverdraft_whenConcurrentRequests` — BUILD SUCCESS, Tests run: 5, Failures: 0, Errors: 0.
 - **(2026-09-16)** DDD Refactor — `Money` value object, `Transaction` aggregate root, và ADR-008 — chi tiết ở mục [DDD Refactor](#ddd-refactor--money-value-object-và-transaction-aggregate-root) bên dưới.
 - **(2026-09-17)** Outbox Pattern + Kafka event publishing — `Transaction` phát domain event, 4 consumer độc lập (Audit/Compliance, Fraud Detection, Notification, Reporting), và ADR-009 — chi tiết ở mục [Outbox Pattern & Kafka Event Publishing](#outbox-pattern--kafka-event-publishing) bên dưới.
+- **(2026-09-17)** Redis cache cho `AccountService.getBalance()`, invalidation qua AFTER_COMMIT, và ADR-010 — chi tiết ở mục [Redis Cache cho Account Balance](#redis-cache-cho-account-balance) bên dưới.
 
 ## Thiết lập môi trường
 
@@ -167,6 +168,34 @@ Kết quả cuối: `Tests run: 3, Failures: 0, Errors: 0` — BUILD SUCCESS.
 4. **Testcontainers 2.x đổi tên artifact** `testcontainers-kafka` (khác tiền tố so với 1.x) — gây lỗi "version is missing" khó hiểu lúc đầu.
 
 Quyết định thiết kế đầy đủ (Context, Options Considered A/B, Decision, Consequences kèm 4 vấn đề kỹ thuật trên) đã ghi lại tại [ADR-009](/adr/ADR-009-outbox-pattern-kafka-event-publishing).
+
+## Redis Cache cho Account Balance
+
+**(2026-09-17)** `AccountService.getBalance()` tính động qua `SUM()` toàn bộ `LedgerEntry` mỗi lần gọi — không hiệu quả khi account có nhiều giao dịch. Thêm Redis cache-aside, qua 4 bước.
+
+### Bước 1 — Setup Redis
+
+- Thêm service `redis` (`redis:7-alpine`) vào `docker-compose.yml`. Port 6379 bị 1 container Redis khác trên máy chiếm dụng → đổi host port sang `6380` (tương tự lý do trước đó Postgres phải đổi sang 5434).
+- Thêm dependency `spring-boot-starter-data-redis`. Cấu hình `spring.data.redis.host`/`port` và `app.cache.balance.ttl-seconds` (mặc định 3600) trong `application.properties`.
+
+### Bước 2 — Cache-aside
+
+- `AccountBalanceCache` (dùng `StringRedisTemplate`) — chỉ cache số tiền dạng chuỗi (`BigDecimal.toPlainString()`), không cache `currency` vì đọc thẳng từ `Account`, không đổi theo thời gian.
+- `AccountService.getBalance()` đọc cache trước, miss thì tính từ DB rồi ghi lại cache (cache-aside).
+- **Không dùng cache trong `withdraw()`:** tách riêng method `private computeBalanceFromDb()` tính thẳng từ DB, dùng nội bộ cho bước kiểm tra đủ số dư trong `withdraw()` — vì bước này nằm trong pessimistic lock, đọc cache ở đây có thể trả về balance cũ và làm mất tác dụng của Pessimistic Locking (xem [ADR-007](/adr/ADR-007-pessimistic-locking-withdraw)).
+
+### Bước 3 — AFTER_COMMIT invalidation
+
+- `AccountBalanceCacheEvictionListener` lắng nghe `TransactionPostedEvent`/`TransactionReversedEvent` — cùng domain event đã dùng cho Outbox/Kafka ở [ADR-009](/adr/ADR-009-outbox-pattern-kafka-event-publishing) (`LedgerService` publish event này vừa làm nội dung Outbox, vừa làm Spring `ApplicationEvent` nội bộ), không tạo event class mới.
+- Dùng `@TransactionalEventListener(phase = AFTER_COMMIT)` thay vì evict trực tiếp trong cùng `@Transactional` — nếu evict trước khi commit, một request đọc đồng thời có thể query DB (vẫn thấy balance cũ vì transaction ghi chưa commit) rồi ghi đè lại balance cũ vào cache ngay sau evict, kẹt lại đến hết TTL. Evict ở AFTER_COMMIT thu hẹp đáng kể cửa sổ race này.
+
+### Bước 4 — Test
+
+- `AccountBalanceCacheTest` (unit, 78 dòng), `AccountServiceCacheTest` (unit, 95 dòng), `AccountBalanceCacheIntegrationTest` (144 dòng, Redis thật qua Testcontainers).
+- Testcontainers 2.x không có module `testcontainers-redis` riêng (khác Kafka có `testcontainers-kafka` riêng) → dùng `GenericContainer` với image `redis:7-alpine` trực tiếp.
+- Test regression + concurrency test cũ của `withdraw()` vẫn pass — xác nhận cache không ảnh hưởng invariant chống overdraft. Integration test riêng xác nhận balance không stale sau giao dịch mới.
+
+Quyết định thiết kế đầy đủ (Context, 2 Options Considered, Decision, Consequences kèm 2 vấn đề kỹ thuật trên) đã ghi lại tại [ADR-010](/adr/ADR-010-redis-cache-account-balance).
 
 ## Khó khăn & giải pháp
 

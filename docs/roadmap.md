@@ -141,6 +141,15 @@ Thông báo sự kiện `Transaction` (mới/hoàn tác) cho các hệ thống k
 
 Quyết định thiết kế đầy đủ: [ADR-009](/adr/ADR-009-outbox-pattern-kafka-event-publishing). Nhật ký chi tiết từng bước: [Devlog — Giai đoạn 1](/devlog/phase-1-core-banking#outbox-pattern-kafka-event-publishing).
 
+### Redis Cache cho Account Balance — hoàn thành 2026-09-17 {#redis-cache}
+
+Cache-aside cho `AccountService.getBalance()`, không đánh đổi invariant chống overdraft đã có ở Pessimistic Locking:
+
+- **Cache-aside** — `AccountBalanceCache` (`StringRedisTemplate`) cache balance theo account, TTL cấu hình được (mặc định 3600s); `withdraw()` luôn tính thẳng từ DB qua `computeBalanceFromDb()`, không bao giờ đọc cache khi kiểm tra invariant.
+- **Invalidation AFTER_COMMIT** — `AccountBalanceCacheEvictionListener` evict cache qua `@TransactionalEventListener(phase = AFTER_COMMIT)`, tái sử dụng `TransactionPostedEvent`/`TransactionReversedEvent` đã có từ tính năng Kafka, thu hẹp cửa sổ race so với evict trước khi commit.
+
+Quyết định thiết kế đầy đủ: [ADR-010](/adr/ADR-010-redis-cache-account-balance). Nhật ký chi tiết từng bước: [Devlog — Giai đoạn 1](/devlog/phase-1-core-banking#redis-cache-cho-account-balance).
+
 ---
 
 ## Giai đoạn 2 — Tháng 3–4: Interbank Payment Gateway (Sub-project A) {#giai-doan-2}
