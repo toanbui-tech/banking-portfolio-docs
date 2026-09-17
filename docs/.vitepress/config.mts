@@ -101,7 +101,8 @@ export default defineConfig({
             { text: 'ADR-009: Outbox Pattern & Kafka Event Publishing', link: '/adr/ADR-009-outbox-pattern-kafka-event-publishing' },
             { text: 'ADR-010: Redis Cache Account Balance', link: '/adr/ADR-010-redis-cache-account-balance' },
             { text: 'ADR-011: Oracle Dual-Profile Support', link: '/adr/ADR-011-oracle-dual-profile-support' },
-            { text: 'ADR-012: Money Fixed Scale', link: '/adr/ADR-012-money-fixed-scale' }
+            { text: 'ADR-012: Money Fixed Scale', link: '/adr/ADR-012-money-fixed-scale' },
+            { text: 'ADR-013: Kubernetes Deployment', link: '/adr/ADR-013-kubernetes-deployment' }
           ]
         }
       ],

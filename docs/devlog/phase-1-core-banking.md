@@ -1,6 +1,6 @@
 # Giai đoạn 1 — Core Banking (Sub-project B)
 
-**Trạng thái:** [Đang triển khai]
+**Trạng thái:** [Hoàn thành]
 
 Xem mục tiêu đầy đủ của giai đoạn này tại [Lộ trình — Giai đoạn 1](/roadmap#giai-doan-1).
 
@@ -20,6 +20,7 @@ Xem mục tiêu đầy đủ của giai đoạn này tại [Lộ trình — Giai
 - **(2026-09-17)** Outbox Pattern + Kafka event publishing — `Transaction` phát domain event, 4 consumer độc lập (Audit/Compliance, Fraud Detection, Notification, Reporting), và ADR-009 — chi tiết ở mục [Outbox Pattern & Kafka Event Publishing](#outbox-pattern--kafka-event-publishing) bên dưới.
 - **(2026-09-17)** Redis cache cho `AccountService.getBalance()`, invalidation qua AFTER_COMMIT, và ADR-010 — chi tiết ở mục [Redis Cache cho Account Balance](#redis-cache-cho-account-balance) bên dưới.
 - **(2026-09-17)** Oracle dual-profile support (45/45 test pass trên cả 2 database) và fix `Money` scale cố định — ADR-011, ADR-012 — chi tiết ở mục [Oracle Dual-Profile & Fix Money Scale](#oracle-dual-profile--fix-money-scale) bên dưới.
+- **(2026-09-17)** REST API + Kubernetes deployment, verify Pessimistic Locking qua 3 Pod thật — ADR-013 — chi tiết ở mục [Kubernetes Deployment](#kubernetes-deployment) bên dưới.
 
 ## Thiết lập môi trường
 
@@ -230,6 +231,36 @@ Quyết định thiết kế đầy đủ (Context, 2 Options Considered, Decisi
 
 - 45/45 test pass trên cả 2 database (Postgres và Oracle), không cần sửa test theo profile — khác biệt CSDL xử lý hoàn toàn ở tầng cấu hình/migration, không rò lên tầng test.
 - Quyết định thiết kế Oracle dual-profile đầy đủ (Options Considered, 5 vấn đề kỹ thuật khi viết lại migration) đã ghi lại tại [ADR-011](/adr/ADR-011-oracle-dual-profile-support).
+
+## Kubernetes Deployment
+
+**(2026-09-17)** Cần chứng minh khả năng triển khai trên Kubernetes, đặc biệt verify Pessimistic Locking hoạt động đúng khi nhiều instance ứng dụng chạy song song. Triển khai qua 4 bước.
+
+### Bước 1 — REST Controller
+
+- Trước đó codebase không có endpoint HTTP nào — `AccountService` chỉ được gọi trực tiếp trong cùng JVM qua test. Không có cách nào verify Pessimistic Locking qua nhiều Pod thật (nhiều JVM/process riêng biệt) nếu không có cổng vào HTTP.
+- Thêm `AccountController`: `POST /accounts`, `GET /accounts/{id}/balance`, `POST /accounts/{id}/deposit`, `POST /accounts/{id}/withdraw`. Thêm `AccountService.deposit()` (ghi cặp CREDIT/DEBIT qua `LedgerService`, đối xứng với `withdraw()` nhưng không cần lock vì không kiểm tra invariant số dư).
+- Log request/response trong `withdraw()` gắn tên Pod (đọc biến môi trường `HOSTNAME` — K8s tự set bằng tên Pod) — chuẩn bị bằng chứng cho bước verify ở Bước 4.
+- Thêm `spring-boot-starter-actuator`, bật `management.health.livenessstate`/`readinessstate` cho probe K8s.
+
+### Bước 2 — Dockerfile
+
+- Multi-stage build: stage build dùng image Maven chính thức pin version (không dùng `./mvnw` vì `maven-wrapper.jar` bị gitignore, tránh phụ thuộc file không có sẵn khi build từ git clone sạch), stage runtime chỉ `eclipse-temurin:17-jre-alpine`.
+- **Fix Kafka advertised listener:** `localhost` chỉ đúng khi app chạy trên host, sai khi chạy trong container (bên trong container, `localhost` là chính nó). Thêm listener thứ 2 (`PLAINTEXT_HOST`, advertise qua `host.docker.internal`, port 9094) chạy song song với listener cũ (`PLAINTEXT`, port 9092, vẫn dùng cho test suite chạy trực tiếp trên host).
+
+### Bước 3 — Deploy 1 replica
+
+- Viết `k8s/namespace.yaml`, `k8s/configmap.yaml` (trỏ `host.docker.internal` cho Postgres/Kafka/Redis vẫn chạy ngoài cluster qua docker-compose), `k8s/secret.yaml` (DB credentials, tách khỏi ConfigMap), `k8s/deployment.yaml`, `k8s/service.yaml` (`NodePort`, truy cập thẳng qua `localhost:30080` từ máy host trên Docker Desktop K8s, không cần `kubectl port-forward`).
+- Dùng Docker Desktop Kubernetes (không phải minikube/kind) — dùng chung Docker engine/image cache với `docker build`, `imagePullPolicy: Never`.
+- `startupProbe`/`livenessProbe`/`readinessProbe` trỏ `/actuator/health/*` — `startupProbe` cho app đủ thời gian kết nối DB/Kafka/Redis trước khi liveness bắt đầu tính, tránh bị kill oan lúc đang khởi động.
+
+### Bước 4 — Scale 3 replicas & verify Pessimistic Locking
+
+- Scale `replicas: 3`, bắn 5 request `withdraw` đồng thời (đủ tiền cho đúng 1 request thành công) qua Service. Verify 2 lớp bằng chứng tách biệt:
+  1. **Kết quả nghiệp vụ đúng:** 1 request thành công, 4 bị từ chối HTTP 409, balance cuối cùng chính xác, không âm, không trừ lặp.
+  2. **Request thực sự phân tán qua cả 3 Pod khác nhau** — xác nhận qua `kubectl logs --prefix`, log gắn tên Pod cụ thể, bao gồm trường hợp 1 Pod nhận 2 request cùng lúc và tự serialize đúng. Bằng chứng cho thấy cơ chế lock nằm ở DB (độc lập với Pod gọi vào), không phải do K8s tình cờ route hết về 1 chỗ.
+- Giới hạn đã biết: `OutboxEventPublisher` không có lock phân tán khi nhiều Pod — 3 consumer PoC có thể log trùng nếu nhiều Pod cùng đọc trúng 1 `OutboxEvent` chưa publish; `AuditComplianceConsumer` không bị ảnh hưởng vì đã idempotent.
+- Quyết định thiết kế đầy đủ (Options Considered, 2 vấn đề kỹ thuật, chi tiết verify thực nghiệm) đã ghi lại tại [ADR-013](/adr/ADR-013-kubernetes-deployment).
 
 ## Khó khăn & giải pháp
 

@@ -161,6 +161,17 @@ Chứng minh khả năng vận hành trên hạ tầng CSDL doanh nghiệp (Orac
 
 Quyết định thiết kế đầy đủ: [ADR-011](/adr/ADR-011-oracle-dual-profile-support) (dual-profile), [ADR-012](/adr/ADR-012-money-fixed-scale) (fix Money scale). Nhật ký chi tiết từng bước: [Devlog — Giai đoạn 1](/devlog/phase-1-core-banking#oracle-dual-profile-fix-money-scale).
 
+### Kubernetes Deployment — hoàn thành 2026-09-17 {#kubernetes-deployment}
+
+Verify Pessimistic Locking (chống overdraft) giữ vững khi nhiều instance ứng dụng chạy song song, qua deployment K8s thật:
+
+- **REST Controller** — thêm `AccountController` (trước đó không có endpoint HTTP nào), bắt buộc phải có để verify locking qua nhiều Pod (nhiều JVM riêng biệt) thay vì gọi thẳng service trong cùng JVM như test hiện có.
+- **Dockerfile + fix Kafka listener** — multi-stage build; thêm listener Kafka thứ 2 (`PLAINTEXT_HOST`, qua `host.docker.internal`) vì `localhost` bên trong container không phải máy host.
+- **Deploy K8s** — `Namespace`/`ConfigMap`/`Secret`/`Deployment`/`Service` (`NodePort`) trên Docker Desktop Kubernetes, data layer (Postgres/Oracle/Kafka/Redis) vẫn giữ ở docker-compose ngoài cluster.
+- **Verify thực nghiệm:** scale 3 replicas, bắn 5 request `withdraw` đồng thời — 1 thành công, 4 bị từ chối HTTP 409, xác nhận qua `kubectl logs` rằng request thực sự phân tán qua cả 3 Pod (không phải do K8s tình cờ route về 1 chỗ).
+
+Quyết định thiết kế đầy đủ: [ADR-013](/adr/ADR-013-kubernetes-deployment). Nhật ký chi tiết từng bước: [Devlog — Giai đoạn 1](/devlog/phase-1-core-banking#kubernetes-deployment).
+
 ---
 
 ## Giai đoạn 2 — Tháng 3–4: Interbank Payment Gateway (Sub-project A) {#giai-doan-2}
@@ -207,6 +218,6 @@ Quyết định thiết kế đầy đủ: [ADR-011](/adr/ADR-011-oracle-dual-pr
 
 > Phần này sẽ được cập nhật theo thời gian khi triển khai từng giai đoạn. Chi tiết theo từng giai đoạn xem tại [Devlog](/devlog/).
 
-- [ ] Giai đoạn 1: Core Banking
+- [x] Giai đoạn 1: Core Banking
 - [ ] Giai đoạn 2: Interbank Payment Gateway
 - [ ] Giai đoạn 3: Tích hợp & hoàn thiện
