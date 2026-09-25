@@ -44,6 +44,32 @@ features:
 
 ## Sơ đồ tổng thể 2 Sub-Project
 
+<svg class="diagram" viewBox="0 0 680 280" role="img" aria-labelledby="overview-vi-title overview-vi-desc">
+<title id="overview-vi-title">Tổng quan 2 sub-project</title>
+<desc id="overview-vi-desc">Payment Gateway (Giai đoạn 2, chưa bắt đầu) sẽ gọi Core Banking (Giai đoạn 1, hoàn thành) qua REST nội bộ kèm Idempotency-Key.</desc>
+<defs><marker id="overview-vi-arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="arrowhead" d="M2 1L8 5L2 9"/></marker></defs>
+<rect class="box-muted" x="20" y="20" width="250" height="240" rx="12"/>
+<text class="t" x="145" y="48" text-anchor="middle" dominant-baseline="central">A · Payment Gateway</text>
+<text class="lbl" x="145" y="70" text-anchor="middle" dominant-baseline="central">Giai đoạn 2 — chưa bắt đầu</text>
+<path class="edge" d="M36 88 L254 88"/>
+<text class="s" x="36" y="116" text-anchor="start" dominant-baseline="central">pain.001 / pacs.008 (ISO 20022)</text>
+<text class="s" x="36" y="150" text-anchor="start" dominant-baseline="central">Saga Orchestrator + bù trừ</text>
+<text class="s" x="36" y="184" text-anchor="start" dominant-baseline="central">EOD Settlement (Spring Batch)</text>
+<text class="s" x="36" y="218" text-anchor="start" dominant-baseline="central">Retry / dead-letter</text>
+<rect class="box" x="410" y="20" width="250" height="240" rx="12"/>
+<text class="t" x="535" y="48" text-anchor="middle" dominant-baseline="central">B · Core Banking</text>
+<text class="lbl" x="535" y="70" text-anchor="middle" dominant-baseline="central">Giai đoạn 1 — hoàn thành</text>
+<path class="edge" d="M426 88 L644 88"/>
+<text class="s" x="426" y="116" text-anchor="start" dominant-baseline="central">Double-entry ledger, Nợ = Có</text>
+<text class="s" x="426" y="150" text-anchor="start" dominant-baseline="central">Pessimistic lock chống overdraft</text>
+<text class="s" x="426" y="184" text-anchor="start" dominant-baseline="central">Outbox + Kafka, Redis cache</text>
+<text class="s" x="426" y="218" text-anchor="start" dominant-baseline="central">PostgreSQL / Oracle · K8s</text>
+<path class="edge dashed" d="M272 140 L408 140" marker-end="url(#overview-vi-arr)"/>
+<text class="lbl" x="340" y="112" text-anchor="middle" dominant-baseline="central">REST nội bộ</text>
+<text class="lbl mono" x="340" y="126" text-anchor="middle" dominant-baseline="central">+ Idempotency-Key</text>
+<text class="lbl" x="340" y="160" text-anchor="middle" dominant-baseline="central">(Giai đoạn 3)</text>
+</svg>
+
 **Sub-project A: Interbank Payment Gateway**
 - Message parsing & validation cho `pain.001` / `pacs.008`
 - Saga Orchestrator — điều phối & bù trừ giao dịch phân tán
