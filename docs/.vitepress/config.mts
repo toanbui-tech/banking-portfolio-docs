@@ -144,6 +144,8 @@ export default defineConfig({
 
   head: [
     ['link', { rel: 'icon', type: 'image/svg+xml', href: `${base}favicon.svg` }],
+    // Icon khi "Thêm vào màn hình chính" trên iOS (iOS không dùng favicon SVG)
+    ['link', { rel: 'apple-touch-icon', sizes: '180x180', href: `${base}apple-touch-icon.png` }],
     ['meta', { name: 'theme-color', content: '#ffffff' }],
   ],
 
@@ -165,6 +167,11 @@ export default defineConfig({
   },
 
   themeConfig: {
+    // Logo cạnh tên site trên nav bar — cùng biểu tượng T-account với favicon.
+    // Tách 2 file light/dark vì dark mode của site bật bằng class (nút toggle),
+    // không theo prefers-color-scheme như favicon. alt rỗng vì tên site đã đứng ngay cạnh.
+    logo: { light: '/logo.svg', dark: '/logo-dark.svg', alt: '' },
+
     socialLinks: [
       { icon: 'github', link: 'https://github.com/toanbui-tech' },
       { icon: 'linkedin', link: 'https://www.linkedin.com/in/toanbui-tech' }

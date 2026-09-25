@@ -1,5 +1,20 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
-  <rect width="32" height="32" rx="7" fill="#18181b"/>
-  <rect x="8" y="12" width="16" height="3" rx="1.5" fill="#ffffff"/>
-  <rect x="8" y="18" width="10" height="3" rx="1.5" fill="#ffffff"/>
+  <!-- T-account (tài khoản chữ T): ký hiệu kinh điển của kế toán kép.
+       Hai cột Nợ | Có với bút toán bằng nhau hai bên = Nợ = Có.
+       Tab tối: đảo màu để favicon không chìm vào nền. -->
+  <style>
+    .bg { fill: #18181b; }
+    .fg { fill: #ffffff; }
+    @media (prefers-color-scheme: dark) {
+      .bg { fill: #fafafa; }
+      .fg { fill: #18181b; }
+    }
+  </style>
+  <rect class="bg" width="32" height="32" rx="8"/>
+  <rect class="fg" x="7" y="8" width="18" height="3" rx="1.5"/>
+  <rect class="fg" x="14.5" y="8" width="3" height="16" rx="1.5"/>
+  <rect class="fg" x="7" y="15" width="5" height="2.5" rx="1.25" opacity="0.55"/>
+  <rect class="fg" x="20" y="15" width="5" height="2.5" rx="1.25" opacity="0.55"/>
+  <rect class="fg" x="7" y="20" width="5" height="2.5" rx="1.25" opacity="0.55"/>
+  <rect class="fg" x="20" y="20" width="5" height="2.5" rx="1.25" opacity="0.55"/>
 </svg>
