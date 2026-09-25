@@ -1,514 +1,639 @@
-/* Custom Theme Styles: Banking / Fintech — "Liquid Glass" (iOS-style)
+/* Custom Theme Styles: Banking / Fintech — Monochrome (lấy cảm hứng từ medusajs.com)
  *
- * Quy tắc màu chữ (bắt buộc):
- * - Text CHỈ dùng đen (light) / trắng (dark). Sắc thái đen/trắng (rgba alpha
- *   khác nhau cho text-1/2/3) vẫn tính là "đen"/"trắng", không phải accent.
- * - Màu accent (--vp-c-brand-*) CHỈ xuất hiện ở nền, viền, shadow, icon —
- *   không bao giờ set trực tiếp lên `color` của text.
- * - Contrast đã tính tay theo WCAG AA (ghi chú ở từng chỗ có rủi ro thấp).
+ * Nguyên tắc:
+ * - Chỉ dùng thang xám trung tính (zinc): trắng, đen và các mức "đen mờ".
+ *   Không có màu accent — phân cấp bằng độ đậm, viền mảnh và khoảng trắng.
+ * - Viền của card/nút vẽ bằng box-shadow 1px (kiểu Medusa) thay vì border,
+ *   để chồng được thêm shadow nổi nhẹ mà không làm lệch layout.
+ * - Mọi màu đều khai báo qua token bên dưới; dark mode chỉ đổi token.
  * -------------------------------------------------------------------------- */
 
 :root {
-  /* Đã kiểm tra contrast: #0369a1 trên nền trắng đạt tỉ lệ ~5.9:1 (chỉ dùng cho
-     nền/viền/shadow bên dưới, KHÔNG dùng cho text) */
-  --vp-c-brand-1: #0369a1;
-  --vp-c-brand-2: #075985;
-  --vp-c-brand-3: #0c4a6e;
-  --vp-c-brand-soft: rgba(3, 105, 161, 0.12);
+  /* Thang màu nền / chữ / viền */
+  --mc-bg: #ffffff;
+  --mc-bg-subtle: #fafafa;
+  --mc-bg-component: #f4f4f5;
+  --mc-bg-hover: #f4f4f5;
+  --mc-fg: #18181b;
+  --mc-fg-subtle: #52525b;
+  --mc-fg-muted: #71717a;
+  --mc-fg-disabled: #a1a1aa;
+  --mc-border: #e4e4e7;
+  --mc-border-strong: #d4d4d8;
+  --mc-grid-line: rgba(0, 0, 0, 0.045);
 
-  /* Text: chỉ đen, 3 mức opacity cho phân cấp (vẫn là "đen") */
-  --vp-c-text-1: #000000;
-  --vp-c-text-2: rgba(0, 0, 0, 0.72);
-  --vp-c-text-3: rgba(0, 0, 0, 0.56);
+  /* Viền + nổi nhẹ cho card / nút phụ */
+  --mc-shadow-border: 0 0 0 1px rgba(0, 0, 0, 0.08);
+  --mc-shadow-card: 0 0 0 1px rgba(0, 0, 0, 0.08), 0 1px 2px -1px rgba(0, 0, 0, 0.08),
+    0 2px 4px 0 rgba(0, 0, 0, 0.04);
+  --mc-shadow-card-hover: 0 0 0 1px rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.08),
+    0 8px 16px -4px rgba(0, 0, 0, 0.08);
+  --mc-shadow-button-primary: inset 0 0.75px 0 0 rgba(255, 255, 255, 0.2),
+    0 1px 2px 0 rgba(0, 0, 0, 0.4), 0 0 0 1px #18181b;
 
-  /* Hero name: solid đen, KHÔNG gradient chữ */
-  --vp-home-hero-name-color: var(--vp-c-text-1);
+  /* ---- Map sang biến của VitePress ---- */
+  --vp-c-bg: var(--mc-bg);
+  --vp-c-bg-alt: var(--mc-bg-subtle);
+  --vp-c-bg-soft: var(--mc-bg-component);
+  --vp-c-bg-elv: var(--mc-bg);
+  --vp-c-border: var(--mc-border-strong);
+  --vp-c-divider: var(--mc-border);
+  --vp-c-gutter: var(--mc-border);
+
+  --vp-c-text-1: var(--mc-fg);
+  --vp-c-text-2: var(--mc-fg-subtle);
+  --vp-c-text-3: var(--mc-fg-muted);
+
+  --vp-c-brand-1: var(--mc-fg);
+  --vp-c-brand-2: #27272a;
+  --vp-c-brand-3: #3f3f46;
+  --vp-c-brand-soft: rgba(0, 0, 0, 0.05);
+
+  /* Custom container (tip/warning/danger/info/note) đều đơn sắc */
+  --vp-c-tip-1: var(--mc-fg);
+  --vp-c-tip-2: var(--mc-fg);
+  --vp-c-tip-3: var(--mc-fg);
+  --vp-c-tip-soft: var(--mc-bg-subtle);
+  --vp-c-warning-1: var(--mc-fg);
+  --vp-c-warning-2: var(--mc-fg);
+  --vp-c-warning-3: var(--mc-fg);
+  --vp-c-warning-soft: var(--mc-bg-subtle);
+  --vp-c-danger-1: var(--mc-fg);
+  --vp-c-danger-2: var(--mc-fg);
+  --vp-c-danger-3: var(--mc-fg);
+  --vp-c-danger-soft: var(--mc-bg-component);
+  --vp-c-note-1: var(--mc-fg);
+  --vp-c-note-2: var(--mc-fg);
+  --vp-c-note-3: var(--mc-fg);
+  --vp-c-note-soft: var(--mc-bg-subtle);
+
+  --vp-home-hero-name-color: var(--mc-fg);
   --vp-home-hero-name-background: transparent;
 
-  /* Code / inline-code / link-trong-code: ép về text đen, accent chỉ còn ở nền */
-  --vp-code-color: var(--vp-c-text-1);
-  --vp-code-link-color: var(--vp-c-text-1);
-  --vp-code-link-hover-color: var(--vp-c-text-1);
-  --vp-code-block-color: var(--vp-c-text-1);
+  --vp-code-color: var(--mc-fg);
+  --vp-code-bg: var(--mc-bg-component);
+  --vp-code-link-color: var(--mc-fg);
+  --vp-code-link-hover-color: var(--mc-fg);
+  --vp-code-block-bg: var(--mc-bg-subtle);
+  --vp-code-block-color: var(--mc-fg);
+  --vp-code-block-divider-color: var(--mc-border);
+  --vp-code-copy-code-bg: var(--mc-bg);
+  --vp-code-copy-code-hover-bg: var(--mc-bg-component);
+  --vp-code-copy-code-border-color: var(--mc-border);
+  --vp-code-copy-code-hover-border-color: var(--mc-border-strong);
+  --vp-code-lang-color: var(--mc-fg-muted);
 
-  /* Button brand: nền kính mờ pastel sáng để chữ ĐEN vẫn đạt AA (>7:1) */
-  --vp-button-brand-border: rgba(3, 105, 161, 0.35);
-  --vp-button-brand-text: var(--vp-c-text-1);
-  --vp-button-brand-bg: rgba(186, 230, 253, 0.75);
-  --vp-button-brand-hover-border: rgba(3, 105, 161, 0.55);
-  --vp-button-brand-hover-text: var(--vp-c-text-1);
-  --vp-button-brand-hover-bg: rgba(153, 246, 228, 0.8);
-  --vp-button-brand-active-border: rgba(3, 105, 161, 0.65);
-  --vp-button-brand-active-text: var(--vp-c-text-1);
-  --vp-button-brand-active-bg: rgba(125, 211, 252, 0.85);
+  --vp-button-brand-border: transparent;
+  --vp-button-brand-text: #ffffff;
+  --vp-button-brand-bg: #18181b;
+  --vp-button-brand-hover-border: transparent;
+  --vp-button-brand-hover-text: #ffffff;
+  --vp-button-brand-hover-bg: #27272a;
+  --vp-button-brand-active-border: transparent;
+  --vp-button-brand-active-text: #ffffff;
+  --vp-button-brand-active-bg: #3f3f46;
 
-  --vp-badge-tip-text: var(--vp-c-text-1);
-  --vp-badge-warning-text: var(--vp-c-text-1);
-  --vp-badge-danger-text: var(--vp-c-text-1);
+  --vp-button-alt-border: transparent;
+  --vp-button-alt-text: var(--mc-fg);
+  --vp-button-alt-bg: var(--mc-bg);
+  --vp-button-alt-hover-border: transparent;
+  --vp-button-alt-hover-text: var(--mc-fg);
+  --vp-button-alt-hover-bg: var(--mc-bg-subtle);
+  --vp-button-alt-active-border: transparent;
+  --vp-button-alt-active-text: var(--mc-fg);
+  --vp-button-alt-active-bg: var(--mc-bg-component);
 
-  --vp-local-search-highlight-bg: rgba(3, 105, 161, 0.22);
-  --vp-local-search-highlight-text: var(--vp-c-text-1);
+  --vp-badge-tip-text: var(--mc-fg);
+  --vp-badge-warning-text: var(--mc-fg);
+  --vp-badge-danger-text: var(--mc-fg);
 
-  /* Token "kính mờ" dùng chung cho nav/sidebar/card/button */
-  --glass-blur: blur(20px) saturate(180%);
-  --glass-border-light: rgba(255, 255, 255, 0.5);
-  --glass-shadow: 0 8px 32px rgba(3, 105, 161, 0.12), 0 1px 2px rgba(3, 105, 161, 0.08);
+  --vp-local-search-highlight-bg: rgba(0, 0, 0, 0.1);
+  --vp-local-search-highlight-text: var(--mc-fg);
+
+  --vp-nav-bg-color: var(--mc-bg);
+  --vp-sidebar-bg-color: var(--mc-bg-subtle);
 }
 
 .dark {
-  /* #38bdf8 trên nền #0f172a đạt tỉ lệ ~8.3:1 (chỉ dùng cho nền/viền/shadow) */
-  --vp-c-brand-1: #38bdf8;
-  --vp-c-brand-2: #7dd3fc;
-  --vp-c-brand-3: #0284c7;
-  --vp-c-brand-soft: rgba(56, 189, 248, 0.16);
+  --mc-bg: #09090b;
+  --mc-bg-subtle: #111113;
+  --mc-bg-component: #18181b;
+  --mc-bg-hover: #1f1f23;
+  --mc-fg: #fafafa;
+  --mc-fg-subtle: #a1a1aa;
+  --mc-fg-muted: #8b8b93;
+  --mc-fg-disabled: #52525b;
+  --mc-border: #27272a;
+  --mc-border-strong: #3f3f46;
+  --mc-grid-line: rgba(255, 255, 255, 0.05);
 
-  --vp-c-bg: #0f172a;
-  --vp-c-bg-alt: #1e293b;
-  --vp-c-bg-elv: #1e293b;
-  --vp-c-bg-soft: #1e293b;
+  --mc-shadow-border: 0 0 0 1px rgba(255, 255, 255, 0.1);
+  --mc-shadow-card: 0 0 0 1px rgba(255, 255, 255, 0.08), 0 1px 2px 0 rgba(0, 0, 0, 0.5);
+  --mc-shadow-card-hover: 0 0 0 1px rgba(255, 255, 255, 0.14), 0 8px 16px -4px rgba(0, 0, 0, 0.6);
+  --mc-shadow-button-primary: inset 0 -1px 0 0 rgba(0, 0, 0, 0.12), 0 0 0 1px #fafafa;
 
-  --vp-c-border: #334155;
-  --vp-c-divider: #334155;
+  --vp-c-brand-1: var(--mc-fg);
+  --vp-c-brand-2: #e4e4e7;
+  --vp-c-brand-3: #d4d4d8;
+  --vp-c-brand-soft: rgba(255, 255, 255, 0.08);
 
-  /* Text: chỉ trắng, 3 mức opacity */
-  --vp-c-text-1: #ffffff;
-  --vp-c-text-2: rgba(255, 255, 255, 0.78);
-  --vp-c-text-3: rgba(255, 255, 255, 0.62);
+  --vp-button-brand-text: #09090b;
+  --vp-button-brand-bg: #fafafa;
+  --vp-button-brand-hover-text: #09090b;
+  --vp-button-brand-hover-bg: #e4e4e7;
+  --vp-button-brand-active-text: #09090b;
+  --vp-button-brand-active-bg: #d4d4d8;
 
-  /* Button brand: nền kính mờ tối để chữ TRẮNG đạt AA */
-  --vp-button-brand-border: rgba(56, 189, 248, 0.4);
-  --vp-button-brand-bg: rgba(12, 74, 110, 0.65);
-  --vp-button-brand-hover-border: rgba(56, 189, 248, 0.6);
-  --vp-button-brand-hover-bg: rgba(6, 95, 70, 0.7);
-  --vp-button-brand-active-border: rgba(56, 189, 248, 0.75);
-  --vp-button-brand-active-bg: rgba(2, 132, 199, 0.55);
-
-  --vp-local-search-highlight-bg: rgba(56, 189, 248, 0.28);
-
-  --glass-border-light: rgba(255, 255, 255, 0.08);
-  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.45), 0 1px 2px rgba(0, 0, 0, 0.3);
+  --vp-local-search-highlight-bg: rgba(255, 255, 255, 0.16);
 }
 
-/* Nền trang: gradient pastel rất nhẹ, không ảnh hưởng tới contrast của text */
-html:not(.dark) body,
-html:not(.dark) .Layout {
-  background: linear-gradient(
-    160deg,
-    #f0f9ff 0%,
-    #f0fdfa 45%,
-    #fdf4ff 100%
-  );
+/* ---------------------------------------------------------------------- *
+ * Typography
+ * ---------------------------------------------------------------------- */
+
+body {
+  background: var(--mc-bg);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-.dark body,
-.dark .Layout {
-  background: linear-gradient(
-    160deg,
-    #0f172a 0%,
-    #0b1324 45%,
-    #10182b 100%
-  );
+.vp-doc h1,
+.vp-doc h2,
+.vp-doc h3 {
+  letter-spacing: -0.02em;
+  font-weight: 600;
 }
 
-/* Nav bar: kính mờ dính trên cùng */
-.VPNav {
-  background: transparent;
+.vp-doc h1 {
+  letter-spacing: -0.03em;
 }
+
+.vp-doc h2 {
+  border-top-color: var(--mc-border);
+}
+
+.vp-doc hr {
+  border-top-color: var(--mc-border);
+}
+
+/* ---------------------------------------------------------------------- *
+ * Nav bar: nền trắng đặc, viền dưới mảnh chỉ hiện khi đã cuộn
+ * (class .vp-scrolled do index.ts toggle)
+ * ---------------------------------------------------------------------- */
 
 .VPNavBar {
-  background: rgba(255, 255, 255, 0.55) !important;
-  backdrop-filter: var(--glass-blur);
-  -webkit-backdrop-filter: var(--glass-blur);
-  border-bottom: 1px solid var(--glass-border-light);
-  box-shadow: var(--glass-shadow);
-  transition: background-color 0.3s, box-shadow 0.3s;
-}
-
-.dark .VPNavBar {
-  background: rgba(15, 23, 42, 0.55) !important;
-}
-
-.VPNavBar.has-sidebar .curtain {
-  background: transparent;
-}
-
-/* Nav bar "condense" khi cuộn (kiểu iOS large-title → compact-title):
-   chỉ đổi độ đục/shadow + scale nhẹ logo, KHÔNG đụng --vp-nav-height nên
-   không gây reflow cho sidebar/content vốn tính offset theo biến đó. */
-.VPNavBar,
-.VPNavBarTitle .title {
-  transition: background-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease;
-}
-
-.VPNavBarTitle .title {
-  transform-origin: left center;
+  transition: box-shadow 0.2s ease, background-color 0.2s ease;
 }
 
 html.vp-scrolled .VPNavBar {
-  background: rgba(255, 255, 255, 0.78) !important;
-  box-shadow: 0 10px 28px rgba(3, 105, 161, 0.18), 0 1px 2px rgba(3, 105, 161, 0.1);
+  box-shadow: 0 1px 0 0 var(--mc-border);
 }
 
-html.dark.vp-scrolled .VPNavBar {
-  background: rgba(15, 23, 42, 0.78) !important;
-  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.5);
+.VPNavBar .divider-line {
+  background-color: var(--mc-border) !important;
 }
 
-html.vp-scrolled .VPNavBarTitle .title {
-  transform: scale(0.94);
-}
-
-/* Sidebar: kính mờ */
-.VPSidebar {
-  background: rgba(255, 255, 255, 0.55) !important;
-  backdrop-filter: var(--glass-blur);
-  -webkit-backdrop-filter: var(--glass-blur);
-  border-right: 1px solid var(--glass-border-light);
-}
-
-.dark .VPSidebar {
-  background: rgba(15, 23, 42, 0.55) !important;
-}
-
-/* Active-indicator: mọc/thu mượt thay vì đổi màu tức thời */
-.VPSidebarItem .indicator {
-  transition: background-color 0.35s cubic-bezier(0.16, 1, 0.3, 1),
-    transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease;
-  transform: scaleY(0.4);
-  opacity: 0;
-}
-
-.VPSidebarItem.level-2.is-active > .item > .indicator,
-.VPSidebarItem.level-3.is-active > .item > .indicator,
-.VPSidebarItem.level-4.is-active > .item > .indicator,
-.VPSidebarItem.level-5.is-active > .item > .indicator {
-  transform: scaleY(1);
-  opacity: 1;
-}
-
-/* Feature card: kính mờ + nổi lên khi hover */
-.VPFeature {
-  background: rgba(255, 255, 255, 0.55) !important;
-  backdrop-filter: var(--glass-blur);
-  -webkit-backdrop-filter: var(--glass-blur);
-  border: 1px solid var(--glass-border-light);
-  border-radius: 18px;
-  box-shadow: var(--glass-shadow);
-  transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
-  cursor: pointer;
-}
-
-.dark .VPFeature {
-  background: rgba(30, 41, 59, 0.55) !important;
-}
-
-.VPFeature.link:hover {
-  transform: translateY(-6px);
-  border-color: rgba(3, 105, 161, 0.4);
-  box-shadow: 0 20px 40px rgba(3, 105, 161, 0.2), 0 4px 12px rgba(3, 105, 161, 0.12);
-}
-
-.dark .VPFeature.link:hover {
-  border-color: rgba(56, 189, 248, 0.45);
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5), 0 4px 12px rgba(56, 189, 248, 0.15);
-}
-
-/* Phản hồi khi bấm: ép xuống nhẹ thay vì chỉ giữ nguyên trạng thái hover */
-.VPFeature:active {
-  transform: scale(0.98);
-}
-
-.VPFeature.link:active {
-  transform: translateY(-2px) scale(0.98);
-  transition-duration: 0.12s;
-}
-
-/* CTA (VPButton.brand): pill kính mờ, chữ đen/trắng thuần */
-.VPButton.brand {
-  backdrop-filter: blur(12px) saturate(160%);
-  -webkit-backdrop-filter: blur(12px) saturate(160%);
-  box-shadow: 0 4px 16px rgba(3, 105, 161, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.5);
-}
-
-.dark .VPButton.brand {
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.06);
-}
-
-/* Phản hồi khi bấm cho mọi nút (brand/alt): ép specificity của style scoped
-   gốc bằng !important vì cần thêm "transform" vào cùng khai báo transition */
-.VPButton.brand,
-.VPButton.alt {
-  transition: color 0.25s, border-color 0.25s, background-color 0.25s,
-    box-shadow 0.25s ease, transform 0.2s ease !important;
-}
-
-.VPButton.brand:active,
-.VPButton.alt:active {
-  transition: color 0.1s, border-color 0.1s, background-color 0.1s,
-    transform 0.1s ease !important;
-  transform: scale(0.97);
-}
-
-/* Badge trạng thái năng lực (trang /project-status) */
-.status-badge {
-  display: inline-block;
-  padding: 3px 12px;
-  border-radius: 999px;
-  font-size: 13px;
+.VPNavBarTitle .title {
   font-weight: 600;
-  white-space: nowrap;
-  color: var(--vp-c-text-1) !important;
+  letter-spacing: -0.01em;
 }
 
-.status-badge.done {
-  background: rgba(16, 185, 129, 0.16);
-  border: 1px solid rgba(16, 185, 129, 0.45);
+.VPNavBarMenuLink,
+.VPNavBarMenuGroup .button {
+  font-weight: 500;
+  color: var(--mc-fg-subtle);
+  transition: color 0.15s ease;
 }
 
-.status-badge.todo {
-  background: rgba(148, 163, 184, 0.18);
-  border: 1px solid rgba(148, 163, 184, 0.45);
+.VPNavBarMenuLink.active,
+.VPNavBarMenuLink:hover,
+.VPNavBarMenuGroup .button:hover {
+  color: var(--mc-fg) !important;
 }
 
-.status-badge.wip {
-  background: rgba(217, 119, 6, 0.16);
-  border: 1px solid rgba(217, 119, 6, 0.45);
+/* Ô tìm kiếm: kiểu input xám nhạt, viền 1px */
+.DocSearch-Button {
+  border-radius: 8px !important;
+  background: var(--mc-bg-subtle) !important;
+  box-shadow: var(--mc-shadow-border) !important;
+  border: none !important;
 }
 
-/* Bảng: bo góc đồng bộ với card/code block. */
-.vp-doc table {
-  display: block;
-  overflow-x: auto;
-  max-width: 100%;
-  border-radius: 12px;
-  border: 1px solid var(--vp-c-divider);
+.DocSearch-Button:hover {
+  background: var(--mc-bg-component) !important;
 }
 
+.DocSearch-Button-Key {
+  border: 1px solid var(--mc-border) !important;
+  border-radius: 4px !important;
+  background: var(--mc-bg) !important;
+  font-family: var(--vp-font-family-mono);
+}
 
-/* Aside-curtain: hiệu ứng fade mặc định của VitePress hard-code màu nền
-   solid (trắng ở light mode) để che nội dung cuộn phía dưới mục lục —
-   nhưng nền trang ở đây là gradient pastel/tối, không khớp màu, nên lộ ra
-   thành một khối đục thay vì fade mượt. Tắt hẳn vì không cần thiết với
-   layout hiện tại (outline thường ngắn, không cần che). */
-.aside-curtain {
+/* ---------------------------------------------------------------------- *
+ * Sidebar: nền xám rất nhạt, mục active là "pill" nền trắng thay cho thanh
+ * indicator của theme mặc định
+ * ---------------------------------------------------------------------- */
+
+.VPSidebar {
+  border-right: 1px solid var(--mc-border);
+}
+
+.VPSidebarItem.level-0 > .item > .text,
+.VPSidebarItem.level-0 > .item > h2.text {
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--mc-fg-muted);
+}
+
+.VPSidebarItem .indicator {
   display: none;
 }
 
-/* Mục lục trên trang (outline aside): cho tiêu đề dài xuống dòng thay vì
-   bị cắt bằng "..." — VitePress mặc định dùng nowrap + ellipsis, không phù
-   hợp với tiêu đề tiếng Việt dài trong site này. */
+.VPSidebarItem.is-link > .item {
+  margin: 1px -8px;
+  padding-left: 8px;
+  padding-right: 8px;
+  border-radius: 6px;
+  transition: background-color 0.15s ease;
+}
+
+.VPSidebarItem.is-link > .item:hover {
+  background-color: var(--mc-bg-hover);
+}
+
+.VPSidebarItem.is-active > .item {
+  background-color: var(--mc-bg);
+  box-shadow: var(--mc-shadow-card);
+}
+
+.VPSidebarItem .link .text {
+  color: var(--mc-fg-subtle);
+}
+
+.VPSidebarItem.is-link > .item > .link:hover .text,
+.VPSidebarItem.is-active > .item .link > .text {
+  color: var(--mc-fg) !important;
+}
+
+.VPSidebarItem.is-active > .item .link > .text {
+  font-weight: 500;
+}
+
+/* Mục lục bên phải: marker và link active đen thuần */
+.VPDocAsideOutline .outline-title {
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--mc-fg-muted);
+}
+
+.VPDocAsideOutline .outline-marker {
+  background-color: var(--mc-fg);
+}
+
+/* Cho tiêu đề dài xuống dòng thay vì bị cắt "..." (tiêu đề tiếng Việt dài) */
 .outline-link {
+  color: var(--mc-fg-muted);
   white-space: normal !important;
   overflow: visible !important;
   text-overflow: clip !important;
   line-height: 1.4;
 }
 
-.vp-doc th:first-child,
-.vp-doc tr:first-child td:first-child {
-  border-top-left-radius: 11px;
-}
-
-/* Code block: kính mờ nhẹ, viền + bo góc đồng bộ */
-.vp-doc pre,
-.vp-doc div[class*='language-'] {
-  border: 1px solid var(--vp-c-border);
-  border-radius: 12px;
-}
-
-.vp-doc div[class*='language-'] {
-  background: rgba(255, 255, 255, 0.55) !important;
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-}
-
-.dark .vp-doc div[class*='language-'] {
-  background: rgba(15, 23, 42, 0.6) !important;
-}
-
-/* Custom container (tip/warning/danger/...): bo góc đồng bộ */
-.custom-block {
-  border-radius: 12px;
+.outline-link:hover,
+.outline-link.active {
+  color: var(--mc-fg) !important;
 }
 
 /* ---------------------------------------------------------------------- *
- * MÀU CHỮ: buộc mọi ngoại lệ dùng accent-cho-text của theme mặc định về
- * lại đen/trắng thuần. Các selector này trùng scope Vue của VitePress nên
- * cần !important để thắng specificity của style scoped gốc.
+ * Trang chủ: hero hai tông (đen + đen mờ), nền lưới mảnh mờ dần
  * ---------------------------------------------------------------------- */
 
-/* Nav link (active/hover) */
-.VPNavBarMenuLink.active,
-.VPNavBarMenuLink:hover {
-  color: var(--vp-c-text-1) !important;
+.VPHome {
+  position: relative;
+  isolation: isolate;
 }
 
-/* Sidebar link text (hover/active) */
-.VPSidebarItem.level-0.is-link > .item > .link:hover .text,
-.VPSidebarItem.level-1.is-link > .item > .link:hover .text,
-.VPSidebarItem.level-2.is-link > .item > .link:hover .text,
-.VPSidebarItem.level-3.is-link > .item > .link:hover .text,
-.VPSidebarItem.level-4.is-link > .item > .link:hover .text,
-.VPSidebarItem.level-5.is-link > .item > .link:hover .text,
-.VPSidebarItem.level-0.is-active > .item .link > .text,
-.VPSidebarItem.level-1.is-active > .item .link > .text,
-.VPSidebarItem.level-2.is-active > .item .link > .text,
-.VPSidebarItem.level-3.is-active > .item .link > .text,
-.VPSidebarItem.level-4.is-active > .item .link > .text,
-.VPSidebarItem.level-5.is-active > .item .link > .text {
-  color: var(--vp-c-text-1) !important;
+.VPHome::before {
+  content: '';
+  position: absolute;
+  inset: calc(var(--vp-nav-height) * -1) 0 auto 0;
+  height: 720px;
+  z-index: -1;
+  pointer-events: none;
+  background-image: linear-gradient(to right, var(--mc-grid-line) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--mc-grid-line) 1px, transparent 1px);
+  background-size: 56px 56px;
+  background-position: center top;
+  -webkit-mask-image: radial-gradient(ellipse 70% 60% at 50% 0%, #000 40%, transparent 100%);
+  mask-image: radial-gradient(ellipse 70% 60% at 50% 0%, #000 40%, transparent 100%);
 }
 
-/* Feature card "read more" link text */
+.VPHero .name,
+.VPHero .text {
+  font-weight: 600;
+  letter-spacing: -0.035em;
+}
+
+.VPHero .name .clip {
+  color: var(--mc-fg);
+  -webkit-text-fill-color: var(--mc-fg);
+  background: none;
+}
+
+.VPHero .text {
+  color: var(--mc-fg-disabled);
+}
+
+.VPHero .tagline {
+  color: var(--mc-fg-subtle);
+  font-weight: 400;
+  max-width: 620px;
+}
+
+/* Eyebrow pill phía trên tiêu đề hero (render trong index.ts) */
+.mc-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 20px;
+  padding: 4px 12px 4px 10px;
+  border-radius: 999px;
+  background: var(--mc-bg);
+  box-shadow: var(--mc-shadow-card);
+  font-family: var(--vp-font-family-mono);
+  font-size: 12px;
+  line-height: 20px;
+  color: var(--mc-fg-subtle);
+  max-width: 100%;
+}
+
+.mc-eyebrow-dot {
+  flex: none;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--mc-fg);
+}
+
+/* Nút: bo 8px thay vì pill, nút chính đen đặc, nút phụ trắng viền mảnh */
+.VPButton {
+  border-radius: 8px !important;
+  font-weight: 500 !important;
+  transition: background-color 0.15s ease, box-shadow 0.15s ease, color 0.15s ease !important;
+}
+
+.VPButton.medium {
+  padding: 0 16px !important;
+  line-height: 38px !important;
+  font-size: 14px !important;
+}
+
+.VPButton.brand {
+  box-shadow: var(--mc-shadow-button-primary);
+}
+
+.VPButton.alt {
+  box-shadow: var(--mc-shadow-card);
+}
+
+.VPButton:focus-visible {
+  outline: 2px solid var(--mc-fg);
+  outline-offset: 2px;
+}
+
+/* Feature card: card trắng, viền shadow 1px, đánh số 01/02/... bằng mono */
+.VPFeatures .items {
+  counter-reset: feature;
+}
+
+.VPFeatures .item {
+  counter-increment: feature;
+}
+
+.VPFeature {
+  border: none !important;
+  border-radius: 12px !important;
+  background: var(--mc-bg) !important;
+  box-shadow: var(--mc-shadow-card);
+  transition: box-shadow 0.2s ease, background-color 0.2s ease;
+}
+
+.VPFeature .box::before {
+  content: counter(feature, decimal-leading-zero);
+  display: block;
+  margin-bottom: 20px;
+  font-family: var(--vp-font-family-mono);
+  font-size: 12px;
+  color: var(--mc-fg-disabled);
+}
+
+.VPFeature .title {
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.VPFeature .details {
+  color: var(--mc-fg-subtle) !important;
+}
+
+.VPFeature.link:hover {
+  box-shadow: var(--mc-shadow-card-hover);
+  background: var(--mc-bg-subtle) !important;
+}
+
 .VPFeature .link-text-value {
-  color: var(--vp-c-text-1) !important;
+  color: var(--mc-fg) !important;
 }
 
-/* Doc footer: nút edit-link & tiêu đề prev/next */
-.edit-link-button,
-.edit-link-button:hover,
-.pager-link .title {
-  color: var(--vp-c-text-1) !important;
-}
+/* ---------------------------------------------------------------------- *
+ * Nội dung tài liệu
+ * ---------------------------------------------------------------------- */
 
-/* Prose link: chữ đen/trắng, chỉ gạch chân dùng màu accent (viền/decoration,
-   không phải màu chữ) để vẫn nhận biết được là link */
+/* Link trong bài: chữ đen, gạch chân xám, hover gạch chân đen */
 .vp-doc a {
-  color: var(--vp-c-text-1) !important;
-  text-decoration-color: rgba(3, 105, 161, 0.55);
+  color: var(--mc-fg) !important;
+  font-weight: 500;
+  text-decoration: underline;
+  text-decoration-color: var(--mc-border-strong);
+  text-decoration-thickness: 1px;
   text-underline-offset: 3px;
+  transition: text-decoration-color 0.15s ease;
 }
 
 .vp-doc a:hover {
-  color: var(--vp-c-text-1) !important;
-  text-decoration-color: var(--vp-c-text-1);
+  text-decoration-color: var(--mc-fg);
 }
 
-.dark .vp-doc a {
-  text-decoration-color: rgba(56, 189, 248, 0.6);
+/* Inline code: chip xám có viền */
+.vp-doc :not(pre) > code {
+  border: 1px solid var(--mc-border);
+  border-radius: 5px;
+  padding: 2px 5px;
+  font-size: 0.85em;
 }
 
-/* Link/inline-code bên trong custom container */
+/* Code block */
+.vp-doc div[class*='language-'] {
+  border-radius: 12px;
+  box-shadow: var(--mc-shadow-border);
+}
+
+/* Token màu cú pháp (Shiki): ép về đơn sắc để giữ bảng màu đen/trắng */
+.vp-doc [class*='language-'] .vp-code span,
+.vp-doc [class*='language-'] pre code span {
+  color: var(--mc-fg) !important;
+}
+
+/* Bảng: khung bo góc, header xám nhạt, không kẻ sọc */
+.vp-doc table {
+  display: block;
+  overflow-x: auto;
+  /* display:block cho phép cuộn ngang trên mobile; max-content để khung
+     bo góc ôm đúng nội dung thay vì kéo dài để trống bên phải */
+  width: max-content;
+  max-width: 100%;
+  border-radius: 12px;
+  border-collapse: separate;
+  border-spacing: 0;
+  box-shadow: var(--mc-shadow-border);
+}
+
+.vp-doc tr {
+  background-color: transparent !important;
+  border-top: none;
+}
+
+.vp-doc th,
+.vp-doc td {
+  border: none;
+  border-bottom: 1px solid var(--mc-border);
+}
+
+.vp-doc th + th,
+.vp-doc td + td {
+  border-left: 1px solid var(--mc-border);
+}
+
+.vp-doc tr:last-child td {
+  border-bottom: none;
+}
+
+.vp-doc th {
+  background-color: var(--mc-bg-subtle);
+  color: var(--mc-fg-subtle);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+/* Custom container: đơn sắc, phân biệt mức độ bằng thanh dọc bên trái */
+.custom-block {
+  border: none;
+  border-radius: 12px;
+  box-shadow: var(--mc-shadow-border);
+  position: relative;
+  overflow: hidden;
+}
+
+.custom-block::before {
+  content: '';
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 3px;
+  background: var(--mc-border-strong);
+}
+
+.custom-block.warning::before,
+.custom-block.danger::before,
+.custom-block.caution::before,
+.custom-block.important::before {
+  background: var(--mc-fg);
+}
+
 .custom-block a,
 .custom-block a:hover,
 .custom-block a:hover > code,
 .custom-block code {
-  color: var(--vp-c-text-1) !important;
+  color: var(--mc-fg) !important;
 }
 
-/* Token màu cú pháp (Shiki) trong code block: ép về đen/trắng thuần theo
-   yêu cầu, accent chỉ còn ở nền/viền của khối code */
-.vp-doc [class*='language-'] .vp-code span,
-.vp-doc [class*='language-'] pre code span {
-  color: var(--vp-c-text-1) !important;
+.aside-curtain {
+  display: none;
 }
 
-/* In trang (Ctrl+P / Save as PDF): tránh cắt nội dung tràn khung.
-   Ghi đè các selector cụ thể của theme mặc định (div[class*='language-'])
-   nên cần !important để thắng specificity gốc. */
-@media print {
-  .vp-doc table {
-    display: table;
-    overflow-x: visible;
-    font-size: 0.85em;
-  }
-  .vp-doc div[class*='language-'] {
-    overflow-x: visible !important;
-    backdrop-filter: none !important;
-  }
-  .vp-doc [class*='language-'] pre,
-  .vp-doc [class*='language-'] code {
-    white-space: pre-wrap !important;
-    word-break: break-word !important;
-  }
-  .VPNav,
-  .VPSidebar,
-  .VPDocFooter,
-  .VPLocalNav {
-    display: none !important;
-  }
-  .VPDoc {
-    padding: 0 !important;
-  }
+/* Doc footer: nút edit-link & prev/next dạng card */
+.edit-link-button,
+.edit-link-button:hover {
+  color: var(--mc-fg) !important;
+}
+
+.pager-link {
+  border: none !important;
+  border-radius: 12px !important;
+  box-shadow: var(--mc-shadow-card);
+  transition: box-shadow 0.2s ease;
+}
+
+.pager-link:hover {
+  box-shadow: var(--mc-shadow-card-hover);
+}
+
+.pager-link .desc {
+  color: var(--mc-fg-muted) !important;
+}
+
+.pager-link .title {
+  color: var(--mc-fg) !important;
+}
+
+/* Badge trạng thái (trang /project-status, /devlog) — đơn sắc:
+   done = đen đặc, wip = viền đậm + chấm, todo = xám nhạt */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 1px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 20px;
+  white-space: nowrap;
+}
+
+.status-badge.done {
+  background: var(--mc-fg);
+  color: var(--mc-bg) !important;
+}
+
+.status-badge.wip {
+  background: var(--mc-bg);
+  color: var(--mc-fg) !important;
+  box-shadow: inset 0 0 0 1px var(--mc-fg);
+}
+
+.status-badge.wip::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.status-badge.todo {
+  background: var(--mc-bg-component);
+  color: var(--mc-fg-muted) !important;
+  box-shadow: inset 0 0 0 1px var(--mc-border);
 }
 
 /* ---------------------------------------------------------------------- *
- * Hiệu ứng "giọt nước" (droplet ripple) — bắn từ index.ts, chỉ khi click
- * vào CTA / feature card / nav link điều hướng thành công.
+ * Sơ đồ SVG inline (class="diagram") — màu lấy từ token nên tự đổi theo
+ * light/dark. .box = phần đã có / trọng tâm (viền đậm), .box-muted = phần
+ * phụ hoặc chưa làm (nền xám, viền nhạt).
  * ---------------------------------------------------------------------- */
-
-.vp-droplet-ripple {
-  position: fixed;
-  left: 0;
-  top: 0;
-  width: 12px;
-  height: 12px;
-  margin-left: -6px;
-  margin-top: -6px;
-  border-radius: 50%;
-  pointer-events: none;
-  z-index: 9999;
-  background: radial-gradient(
-    circle,
-    rgba(56, 189, 248, 0.55) 0%,
-    rgba(56, 189, 248, 0.25) 40%,
-    rgba(56, 189, 248, 0) 72%
-  );
-  border: 1px solid rgba(56, 189, 248, 0.5);
-  transform: scale(0);
-  opacity: 0.9;
-  animation: vp-droplet-expand 650ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
-  will-change: transform, opacity;
-}
-
-.dark .vp-droplet-ripple {
-  background: radial-gradient(
-    circle,
-    rgba(125, 211, 252, 0.55) 0%,
-    rgba(125, 211, 252, 0.22) 40%,
-    rgba(125, 211, 252, 0) 72%
-  );
-  border-color: rgba(125, 211, 252, 0.5);
-}
-
-@keyframes vp-droplet-expand {
-  0% {
-    transform: scale(0);
-    opacity: 0.9;
-  }
-  60% {
-    opacity: 0.5;
-  }
-  100% {
-    transform: scale(18);
-    opacity: 0;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .vp-droplet-ripple {
-    display: none !important;
-    animation: none !important;
-  }
-
-  /* Giữ nguyên trạng thái cuối (condense/indicator/lift/press) nhưng bỏ
-     hẳn phần nội suy chuyển động — chỉ chuyển tức thời. */
-  .VPNavBar,
-  .VPNavBarTitle .title,
-  .VPSidebarItem .indicator,
-  .VPFeature,
-  .VPFeature.link,
-  .VPButton.brand,
-  .VPButton.alt {
-    transition: none !important;
-  }
-}
-
-/* ---------------------------------------------------------------------------
- * Sơ đồ SVG inline (class="diagram") — không dùng plugin, màu lấy từ token theme
- * nên tự đổi theo light/dark. Tuân quy tắc màu ở đầu file: text chỉ đen/trắng
- * (--vp-c-text-*), accent chỉ ở nền/viền của box.
- * -------------------------------------------------------------------------- */
 .vp-doc svg.diagram {
   display: block;
   width: 100%;
@@ -518,32 +643,32 @@ html.vp-scrolled .VPNavBarTitle .title {
 }
 
 .diagram .box {
-  fill: var(--vp-c-brand-soft);
-  stroke: var(--vp-c-brand-1);
+  fill: var(--mc-bg);
+  stroke: var(--mc-fg);
   stroke-width: 1;
 }
 
 .diagram .box-muted {
-  fill: var(--vp-c-bg-soft);
-  stroke: var(--vp-c-divider);
+  fill: var(--mc-bg-subtle);
+  stroke: var(--mc-border-strong);
   stroke-width: 1;
 }
 
 .diagram .box-dashed {
   fill: none;
-  stroke: var(--vp-c-divider);
+  stroke: var(--mc-border-strong);
   stroke-width: 1;
   stroke-dasharray: 5 4;
 }
 
 .diagram .t {
-  fill: var(--vp-c-text-1);
+  fill: var(--mc-fg);
   font-size: 14px;
   font-weight: 600;
 }
 
 .diagram .s {
-  fill: var(--vp-c-text-2);
+  fill: var(--mc-fg-subtle);
   font-size: 12px;
 }
 
@@ -553,13 +678,13 @@ html.vp-scrolled .VPNavBarTitle .title {
 }
 
 .diagram .lbl {
-  fill: var(--vp-c-text-2);
+  fill: var(--mc-fg-muted);
   font-size: 11px;
 }
 
 .diagram .edge {
   fill: none;
-  stroke: var(--vp-c-text-3);
+  stroke: var(--mc-fg-muted);
   stroke-width: 1.2;
 }
 
@@ -569,8 +694,47 @@ html.vp-scrolled .VPNavBarTitle .title {
 
 .diagram .arrowhead {
   fill: none;
-  stroke: var(--vp-c-text-3);
+  stroke: var(--mc-fg-muted);
   stroke-width: 1.5;
   stroke-linecap: round;
   stroke-linejoin: round;
+}
+
+/* ---------------------------------------------------------------------- *
+ * In trang (Ctrl+P / Save as PDF): tránh cắt nội dung tràn khung
+ * ---------------------------------------------------------------------- */
+@media print {
+  .vp-doc table {
+    display: table;
+    overflow-x: visible;
+    font-size: 0.85em;
+  }
+  .vp-doc div[class*='language-'] {
+    overflow-x: visible !important;
+  }
+  .vp-doc [class*='language-'] pre,
+  .vp-doc [class*='language-'] code {
+    white-space: pre-wrap !important;
+    word-break: break-word !important;
+  }
+  .VPNav,
+  .VPSidebar,
+  .VPDocFooter,
+  .VPLocalNav,
+  .VPHome::before {
+    display: none !important;
+  }
+  .VPDoc {
+    padding: 0 !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .VPNavBar,
+  .VPSidebarItem .item,
+  .VPFeature,
+  .VPButton,
+  .pager-link {
+    transition: none !important;
+  }
 }

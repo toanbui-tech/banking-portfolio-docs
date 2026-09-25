@@ -144,7 +144,7 @@ export default defineConfig({
 
   head: [
     ['link', { rel: 'icon', type: 'image/svg+xml', href: `${base}favicon.svg` }],
-    ['meta', { name: 'theme-color', content: '#0f172a' }],
+    ['meta', { name: 'theme-color', content: '#ffffff' }],
   ],
 
   // Tiếng Việt là ngôn ngữ gốc (root, giữ nguyên URL cũ); tiếng Anh nằm dưới /en/
