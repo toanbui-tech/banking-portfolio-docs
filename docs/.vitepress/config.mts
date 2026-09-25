@@ -1,4 +1,4 @@
-import { defineConfig } from 'vitepress'
+import { defineConfig, type DefaultTheme } from 'vitepress'
 
 // Đường dẫn cơ sở khi deploy lên GitHub Pages dạng project site:
 // https://toanbui-tech.github.io/banking-portfolio-docs/
@@ -6,11 +6,139 @@ import { defineConfig } from 'vitepress'
 // vì VitePress KHÔNG tự động gắn base vào các href khai báo thủ công trong head.
 const base = '/banking-portfolio-docs/'
 
+// Danh sách ADR dùng chung cho cả 2 ngôn ngữ — tên ADR giữ nguyên tiếng Anh/thuật ngữ.
+// `vi`/`en` chỉ khác nhau ở ADR-007.
+const adrs = [
+  { id: '001', slug: 'saga-orchestration-vs-choreography', vi: 'Saga Orchestration vs Choreography' },
+  { id: '002', slug: 'double-entry-ledger-immutable-pattern', vi: 'Double-Entry Immutable Ledger' },
+  { id: '003', slug: 'pessimistic-vs-optimistic-locking-hot-accounts', vi: 'Pessimistic vs Optimistic Locking' },
+  { id: '004', slug: 'idempotency-duplicate-message-prevention', vi: 'Idempotency' },
+  { id: '005', slug: 'spring-batch-chunk-vs-tasklet-eod', vi: 'Spring Batch Chunk EOD Settlement' },
+  { id: '006', slug: 'derived-balance-vs-stored-balance', vi: 'Derived vs Stored Balance' },
+  { id: '007', slug: 'pessimistic-locking-withdraw', vi: 'Pessimistic Locking khi rút tiền', en: 'Pessimistic Locking for Withdrawals' },
+  { id: '008', slug: 'transaction-aggregate-root', vi: 'Transaction Aggregate Root' },
+  { id: '009', slug: 'outbox-pattern-kafka-event-publishing', vi: 'Outbox Pattern & Kafka Event Publishing' },
+  { id: '010', slug: 'redis-cache-account-balance', vi: 'Redis Cache Account Balance' },
+  { id: '011', slug: 'oracle-dual-profile-support', vi: 'Oracle Dual-Profile Support' },
+  { id: '012', slug: 'money-fixed-scale', vi: 'Money Fixed Scale' },
+  { id: '013', slug: 'kubernetes-deployment', vi: 'Kubernetes Deployment' }
+]
+
+// ADR liên quan hiển thị trong sidebar của từng sub-project
+const coreBankingAdrs = ['002', '003', '006', '007', '008', '009', '010', '011', '012', '013']
+const paymentGatewayAdrs = ['001', '004', '005']
+
+type Lang = 'vi' | 'en'
+
+const t = {
+  vi: {
+    home: 'Trang chủ', roadmap: 'Lộ trình', projects: 'Dự án', adrNav: 'Thiết kế & ADRs',
+    devlogNav: 'Nhật ký (Devlog)', status: 'Trạng thái dự án', related: 'Tài liệu liên quan',
+    cb: ['1. Tổng quan & Nghiệp vụ', '2. Kiến trúc Double-Entry Ledger', '3. Công nghệ & Concurrency', '4. Hướng dẫn chạy & Kiểm thử', '5. Thử thách & Bài học rút ra'],
+    pg: ['1. Tổng quan & Nghiệp vụ', '2. Kiến trúc & Chuẩn ISO 20022', '3. Công nghệ & Stack', '4. Hướng dẫn chạy & Kiểm thử', '5. Thử thách & Bài học rút ra'],
+    adrOverview: 'Tổng quan & Ma trận ADR',
+    devlog: ['Tổng quan tiến độ', 'Giai đoạn 1: Core Banking', 'Giai đoạn 2: Payment Gateway', 'Giai đoạn 3: Tích hợp & hoàn thiện'],
+    devlogTitle: 'Nhật ký phát triển (Devlog)'
+  },
+  en: {
+    home: 'Home', roadmap: 'Roadmap', projects: 'Projects', adrNav: 'Design & ADRs',
+    devlogNav: 'Devlog', status: 'Project Status', related: 'Related documents',
+    cb: ['1. Overview & Business Context', '2. Double-Entry Ledger Architecture', '3. Tech Stack & Concurrency', '4. Running & Testing', '5. Challenges & Lessons Learned'],
+    pg: ['1. Overview & Business Context', '2. Architecture & ISO 20022', '3. Tech Stack', '4. Running & Testing', '5. Challenges & Lessons Learned'],
+    adrOverview: 'Overview & ADR Matrix',
+    devlog: ['Progress overview', 'Phase 1: Core Banking', 'Phase 2: Payment Gateway', 'Phase 3: Integration & Polish'],
+    devlogTitle: 'Development Log (Devlog)'
+  }
+}
+
+function themeFor(lang: Lang): DefaultTheme.Config {
+  const p = lang === 'vi' ? '' : '/en'
+  const s = t[lang]
+  const adrLink = (id: string) => {
+    const a = adrs.find((x) => x.id === id)!
+    return { text: `ADR-${a.id}: ${(lang === 'en' && a.en) || a.vi}`, link: `${p}/adr/ADR-${a.id}-${a.slug}` }
+  }
+  const pages = ['', 'architecture', 'tech-stack', 'run-guide', 'lessons-learned']
+
+  return {
+    nav: [
+      { text: s.home, link: `${p}/` },
+      { text: s.roadmap, link: `${p}/roadmap` },
+      {
+        text: s.projects,
+        items: [
+          { text: 'Sub-project B: Core Banking System', link: `${p}/core-banking/` },
+          { text: 'Sub-project A: Payment Gateway (ISO 20022)', link: `${p}/payment-gateway/` }
+        ]
+      },
+      { text: s.adrNav, link: `${p}/adr/` },
+      { text: s.devlogNav, link: `${p}/devlog/` },
+      { text: s.status, link: `${p}/project-status` },
+      { text: 'GitHub', link: 'https://github.com/toanbui-tech' }
+    ],
+
+    sidebar: {
+      [`${p}/core-banking/`]: [
+        {
+          text: 'Core Banking System',
+          collapsed: false,
+          items: pages.map((page, i) => ({ text: s.cb[i], link: `${p}/core-banking/${page}` }))
+        },
+        { text: s.related, items: coreBankingAdrs.map(adrLink) }
+      ],
+      [`${p}/payment-gateway/`]: [
+        {
+          text: 'Interbank Payment Gateway',
+          collapsed: false,
+          items: pages.map((page, i) => ({ text: s.pg[i], link: `${p}/payment-gateway/${page}` }))
+        },
+        { text: s.related, items: paymentGatewayAdrs.map(adrLink) }
+      ],
+      [`${p}/adr/`]: [
+        {
+          text: 'Architecture Decision Records (ADR)',
+          collapsed: false,
+          items: [{ text: s.adrOverview, link: `${p}/adr/` }, ...adrs.map((a) => adrLink(a.id))]
+        }
+      ],
+      [`${p}/devlog/`]: [
+        {
+          text: s.devlogTitle,
+          collapsed: false,
+          items: ['', 'phase-1-core-banking', 'phase-2-payment-gateway', 'phase-3-integration'].map((page, i) => ({
+            text: s.devlog[i],
+            link: `${p}/devlog/${page}`
+          }))
+        }
+      ]
+    },
+
+    ...(lang === 'vi'
+      ? {
+          outline: { level: [2, 3], label: 'Mục lục trên trang' },
+          docFooter: { prev: 'Trang trước', next: 'Trang tiếp theo' },
+          lastUpdated: {
+            text: 'Cập nhật lần cuối',
+            formatOptions: { dateStyle: 'medium', timeStyle: 'short', forceLocale: true }
+          },
+          langMenuLabel: 'Đổi ngôn ngữ',
+          returnToTopLabel: 'Về đầu trang',
+          sidebarMenuLabel: 'Menu',
+          darkModeSwitchLabel: 'Giao diện'
+        }
+      : {
+          outline: { level: [2, 3], label: 'On this page' },
+          lastUpdated: {
+            text: 'Last updated',
+            formatOptions: { dateStyle: 'medium', timeStyle: 'short', forceLocale: true }
+          }
+        })
+  }
+}
+
 // https://vitepress.dev/reference/site-config
 export default defineConfig({
   title: "Banking & Fintech Systems",
-  description: "Java/Spring Boot: ISO 20022 Interbank Payment Gateway & Core Banking double-entry ledger — simulated banking infrastructure",
-  lang: 'vi-VN',
   base,
   lastUpdated: true,
 
@@ -19,117 +147,24 @@ export default defineConfig({
     ['meta', { name: 'theme-color', content: '#0f172a' }],
   ],
 
-  themeConfig: {
-    // Navigation bar top
-    nav: [
-      { text: 'Trang chủ', link: '/' },
-      { text: 'Lộ trình', link: '/roadmap' },
-      {
-        text: 'Dự án',
-        items: [
-          { text: 'Sub-project B: Core Banking System', link: '/core-banking/' },
-          { text: 'Sub-project A: Payment Gateway (ISO 20022)', link: '/payment-gateway/' }
-        ]
-      },
-      { text: 'Thiết kế & ADRs', link: '/adr/' },
-      { text: 'Nhật ký (Devlog)', link: '/devlog/' },
-      { text: 'Trạng thái dự án', link: '/project-status' },
-      { text: 'GitHub', link: 'https://github.com/toanbui-tech' }
-    ],
-
-    // Multi-sidebar configuration
-    sidebar: {
-      // Sidebar cho Sub-project B: Core Banking
-      '/core-banking/': [
-        {
-          text: 'Core Banking System',
-          collapsed: false,
-          items: [
-            { text: '1. Tổng quan & Nghiệp vụ', link: '/core-banking/' },
-            { text: '2. Kiến trúc Double-Entry Ledger', link: '/core-banking/architecture' },
-            { text: '3. Công nghệ & Concurrency', link: '/core-banking/tech-stack' },
-            { text: '4. Hướng dẫn chạy & Kiểm thử', link: '/core-banking/run-guide' },
-            { text: '5. Thử thách & Bài học rút ra', link: '/core-banking/lessons-learned' }
-          ]
-        },
-        {
-          text: 'Tài liệu liên quan',
-          items: [
-            { text: 'ADR-002: Double-Entry Immutable Ledger', link: '/adr/ADR-002-double-entry-ledger-immutable-pattern' },
-            { text: 'ADR-003: Concurrency & Hot Accounts', link: '/adr/ADR-003-pessimistic-vs-optimistic-locking-hot-accounts' },
-            { text: 'ADR-006: Derived vs Stored Balance', link: '/adr/ADR-006-derived-balance-vs-stored-balance' },
-            { text: 'ADR-007: Pessimistic Locking khi rút tiền', link: '/adr/ADR-007-pessimistic-locking-withdraw' },
-            { text: 'ADR-008: Transaction Aggregate Root', link: '/adr/ADR-008-transaction-aggregate-root' },
-            { text: 'ADR-009: Outbox Pattern & Kafka', link: '/adr/ADR-009-outbox-pattern-kafka-event-publishing' },
-            { text: 'ADR-010: Redis Cache Account Balance', link: '/adr/ADR-010-redis-cache-account-balance' },
-            { text: 'ADR-011: Oracle Dual-Profile Support', link: '/adr/ADR-011-oracle-dual-profile-support' },
-            { text: 'ADR-012: Money Fixed Scale', link: '/adr/ADR-012-money-fixed-scale' },
-            { text: 'ADR-013: Kubernetes Deployment', link: '/adr/ADR-013-kubernetes-deployment' }
-          ]
-        }
-      ],
-
-      // Sidebar cho Sub-project A: Payment Gateway
-      '/payment-gateway/': [
-        {
-          text: 'Interbank Payment Gateway',
-          collapsed: false,
-          items: [
-            { text: '1. Tổng quan & Nghiệp vụ', link: '/payment-gateway/' },
-            { text: '2. Kiến trúc & Chuẩn ISO 20022', link: '/payment-gateway/architecture' },
-            { text: '3. Công nghệ & Stack', link: '/payment-gateway/tech-stack' },
-            { text: '4. Hướng dẫn chạy & Kiểm thử', link: '/payment-gateway/run-guide' },
-            { text: '5. Thử thách & Bài học rút ra', link: '/payment-gateway/lessons-learned' }
-          ]
-        },
-        {
-          text: 'Tài liệu liên quan',
-          items: [
-            { text: 'ADR-001: Saga Orchestrator', link: '/adr/ADR-001-saga-orchestration-vs-choreography' },
-            { text: 'ADR-004: Idempotency', link: '/adr/ADR-004-idempotency-duplicate-message-prevention' }
-          ]
-        }
-      ],
-
-      // Sidebar cho ADRs
-      '/adr/': [
-        {
-          text: 'Architecture Decision Records (ADR)',
-          collapsed: false,
-          items: [
-            { text: 'Tổng quan & Ma trận ADR', link: '/adr/' },
-            { text: 'ADR-001: Saga Orchestration vs Choreography', link: '/adr/ADR-001-saga-orchestration-vs-choreography' },
-            { text: 'ADR-002: Double-Entry Immutable Ledger', link: '/adr/ADR-002-double-entry-ledger-immutable-pattern' },
-            { text: 'ADR-003: Pessimistic vs Optimistic Locking', link: '/adr/ADR-003-pessimistic-vs-optimistic-locking-hot-accounts' },
-            { text: 'ADR-004: Idempotency', link: '/adr/ADR-004-idempotency-duplicate-message-prevention' },
-            { text: 'ADR-005: Spring Batch Chunk EOD Settlement', link: '/adr/ADR-005-spring-batch-chunk-vs-tasklet-eod' },
-            { text: 'ADR-006: Derived vs Stored Balance', link: '/adr/ADR-006-derived-balance-vs-stored-balance' },
-            { text: 'ADR-007: Pessimistic Locking khi rút tiền', link: '/adr/ADR-007-pessimistic-locking-withdraw' },
-            { text: 'ADR-008: Transaction Aggregate Root', link: '/adr/ADR-008-transaction-aggregate-root' },
-            { text: 'ADR-009: Outbox Pattern & Kafka Event Publishing', link: '/adr/ADR-009-outbox-pattern-kafka-event-publishing' },
-            { text: 'ADR-010: Redis Cache Account Balance', link: '/adr/ADR-010-redis-cache-account-balance' },
-            { text: 'ADR-011: Oracle Dual-Profile Support', link: '/adr/ADR-011-oracle-dual-profile-support' },
-            { text: 'ADR-012: Money Fixed Scale', link: '/adr/ADR-012-money-fixed-scale' },
-            { text: 'ADR-013: Kubernetes Deployment', link: '/adr/ADR-013-kubernetes-deployment' }
-          ]
-        }
-      ],
-
-      // Sidebar cho Devlog
-      '/devlog/': [
-        {
-          text: 'Nhật ký phát triển (Devlog)',
-          collapsed: false,
-          items: [
-            { text: 'Tổng quan tiến độ', link: '/devlog/' },
-            { text: 'Giai đoạn 1: Core Banking', link: '/devlog/phase-1-core-banking' },
-            { text: 'Giai đoạn 2: Payment Gateway', link: '/devlog/phase-2-payment-gateway' },
-            { text: 'Giai đoạn 3: Tích hợp & hoàn thiện', link: '/devlog/phase-3-integration' }
-          ]
-        }
-      ]
+  // Tiếng Việt là ngôn ngữ gốc (root, giữ nguyên URL cũ); tiếng Anh nằm dưới /en/
+  locales: {
+    root: {
+      label: 'Tiếng Việt',
+      lang: 'vi-VN',
+      description: "Java/Spring Boot: ISO 20022 Interbank Payment Gateway & Core Banking double-entry ledger — mô phỏng hạ tầng ngân hàng",
+      themeConfig: themeFor('vi')
     },
+    en: {
+      label: 'English',
+      lang: 'en-US',
+      link: '/en/',
+      description: "Java/Spring Boot: ISO 20022 Interbank Payment Gateway & Core Banking double-entry ledger — simulated banking infrastructure",
+      themeConfig: themeFor('en')
+    }
+  },
 
+  themeConfig: {
     socialLinks: [
       { icon: 'github', link: 'https://github.com/toanbui-tech' },
       { icon: 'linkedin', link: 'https://www.linkedin.com/in/toanbui-tech' }
@@ -142,21 +177,6 @@ export default defineConfig({
 
     search: {
       provider: 'local'
-    },
-
-    outline: {
-      level: [2, 3],
-      label: 'Mục lục trên trang'
-    },
-
-    docFooter: {
-      prev: 'Trang trước',
-      next: 'Trang tiếp theo'
-    },
-
-    lastUpdated: {
-      text: 'Cập nhật lần cuối',
-      formatOptions: { dateStyle: 'medium', timeStyle: 'short', forceLocale: true }
     }
   }
 })

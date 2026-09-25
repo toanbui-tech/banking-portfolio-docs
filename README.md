@@ -2,7 +2,7 @@
 
 Trang tài liệu kiến trúc (VitePress) cho 2 hệ thống mô phỏng hạ tầng ngân hàng xây dựng bằng Java/Spring Boot.
 
-🌐 **Site:** https://toanbui-tech.github.io/banking-portfolio-docs/
+🌐 **Site:** https://toanbui-tech.github.io/banking-portfolio-docs/ · 🇬🇧 **English:** https://toanbui-tech.github.io/banking-portfolio-docs/en/
 
 | Sub-project | Nội dung | Trạng thái |
 | :--- | :--- | :--- |
@@ -27,8 +27,13 @@ docs/
 ├── core-banking/        Sub-project B
 ├── payment-gateway/     Sub-project A
 ├── adr/                 Architecture Decision Records
-└── devlog/              Nhật ký phát triển theo giai đoạn
+├── devlog/              Nhật ký phát triển theo giai đoạn
+└── en/                  Bản tiếng Anh — cùng cấu trúc, mỗi trang tiếng Việt có 1 trang tương ứng
 ```
+
+Khi sửa một trang tiếng Việt, cập nhật luôn trang tương ứng trong `docs/en/`.
+
+Sơ đồ là SVG inline (không cần plugin), sinh bằng `python3 scripts/diagrams.py <thư-mục-ra>`; màu lấy từ class `.diagram` trong `docs/.vitepress/theme/custom.css` nên tự đổi theo light/dark.
 
 ## Chạy cục bộ
 

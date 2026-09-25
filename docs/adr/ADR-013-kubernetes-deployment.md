@@ -30,6 +30,44 @@ Thêm Actuator (`spring-boot-starter-actuator`) cho liveness/readiness probe. `s
 
 ## Verify thực nghiệm (quan trọng nhất của ADR này)
 
+<svg class="diagram" viewBox="0 0 680 470" role="img" aria-labelledby="k8s-vi-title k8s-vi-desc">
+<title id="k8s-vi-title">Kiểm chứng Pessimistic Locking qua 3 Pod Kubernetes</title>
+<desc id="k8s-vi-desc">5 request rút tiền đồng thời đi qua Service NodePort, được phân tán tới 3 Pod. Cả 3 Pod cùng khóa một dòng Account trong database nên chỉ 1 request thành công, 4 request bị từ chối với HTTP 409.</desc>
+<defs><marker id="k8s-vi-arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="arrowhead" d="M2 1L8 5L2 9"/></marker></defs>
+<rect class="box-muted" x="170" y="16" width="340" height="50" rx="10"/>
+<text class="t" x="340.0" y="32.0" text-anchor="middle" dominant-baseline="central">5 request withdraw đồng thời</text>
+<text class="s" x="340.0" y="50.0" text-anchor="middle" dominant-baseline="central">đủ tiền cho đúng 1 request</text>
+<path class="edge" d="M340 66 L340 90" marker-end="url(#k8s-vi-arr)"/>
+<rect class="box-muted" x="220" y="92" width="240" height="50" rx="10"/>
+<text class="t" x="340.0" y="108.0" text-anchor="middle" dominant-baseline="central">Service</text>
+<text class="s" x="340.0" y="126.0" text-anchor="middle" dominant-baseline="central">NodePort :30080</text>
+<path class="edge" d="M340 142 L340 158 L130 158 L130 176" marker-end="url(#k8s-vi-arr)"/>
+<rect class="box" x="40" y="178" width="180" height="50" rx="10"/>
+<text class="t" x="130.0" y="194.0" text-anchor="middle" dominant-baseline="central">Pod 1</text>
+<text class="s" x="130.0" y="212.0" text-anchor="middle" dominant-baseline="central">AccountController</text>
+<path class="edge" d="M130 228 L130 246 L340 246 L340 262" marker-end="url(#k8s-vi-arr)"/>
+<path class="edge" d="M340 142 L340 158 L340 158 L340 176" marker-end="url(#k8s-vi-arr)"/>
+<rect class="box" x="250" y="178" width="180" height="50" rx="10"/>
+<text class="t" x="340.0" y="194.0" text-anchor="middle" dominant-baseline="central">Pod 2</text>
+<text class="s" x="340.0" y="212.0" text-anchor="middle" dominant-baseline="central">AccountController</text>
+<path class="edge" d="M340 228 L340 246 L340 246 L340 262" marker-end="url(#k8s-vi-arr)"/>
+<path class="edge" d="M340 142 L340 158 L550 158 L550 176" marker-end="url(#k8s-vi-arr)"/>
+<rect class="box" x="460" y="178" width="180" height="50" rx="10"/>
+<text class="t" x="550.0" y="194.0" text-anchor="middle" dominant-baseline="central">Pod 3</text>
+<text class="s" x="550.0" y="212.0" text-anchor="middle" dominant-baseline="central">AccountController</text>
+<path class="edge" d="M550 228 L550 246 L340 246 L340 262" marker-end="url(#k8s-vi-arr)"/>
+<rect class="box-muted" x="140" y="264" width="400" height="68" rx="10"/>
+<text class="t" x="340.0" y="280.0" text-anchor="middle" dominant-baseline="central">PostgreSQL</text>
+<text class="s" x="340.0" y="298.0" text-anchor="middle" dominant-baseline="central">SELECT … FOR UPDATE trên cùng 1 Account</text>
+<text class="s" x="340.0" y="316.0" text-anchor="middle" dominant-baseline="central">→ các request được tuần tự hóa tại DB</text>
+<path class="edge" d="M340 332 L340 356" marker-end="url(#k8s-vi-arr)"/>
+<rect class="box" x="190" y="358" width="300" height="68" rx="10"/>
+<text class="t" x="340.0" y="374.0" text-anchor="middle" dominant-baseline="central">Kết quả</text>
+<text class="s" x="340.0" y="392.0" text-anchor="middle" dominant-baseline="central">1 × thành công · 4 × HTTP 409</text>
+<text class="s" x="340.0" y="410.0" text-anchor="middle" dominant-baseline="central">số dư cuối đúng, không âm</text>
+<text class="lbl mono" x="340" y="448" text-anchor="middle" dominant-baseline="central">kubectl logs --prefix xác nhận request đến cả 3 Pod</text>
+</svg>
+
 Scale 3 replicas, bắn 5 request `withdraw` đồng thời (đủ tiền cho đúng 1 request thành công) qua Service — verify 2 lớp bằng chứng tách biệt:
 
 - **(a) Kết quả nghiệp vụ đúng:** 1 request thành công, 4 request bị từ chối với HTTP 409 (`IllegalStateException` → `CONFLICT`), balance cuối cùng chính xác, không âm, không trừ lặp.

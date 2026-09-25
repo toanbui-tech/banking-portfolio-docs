@@ -503,3 +503,74 @@ html.vp-scrolled .VPNavBarTitle .title {
     transition: none !important;
   }
 }
+
+/* ---------------------------------------------------------------------------
+ * Sơ đồ SVG inline (class="diagram") — không dùng plugin, màu lấy từ token theme
+ * nên tự đổi theo light/dark. Tuân quy tắc màu ở đầu file: text chỉ đen/trắng
+ * (--vp-c-text-*), accent chỉ ở nền/viền của box.
+ * -------------------------------------------------------------------------- */
+.vp-doc svg.diagram {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin: 20px 0;
+  font-family: var(--vp-font-family-base);
+}
+
+.diagram .box {
+  fill: var(--vp-c-brand-soft);
+  stroke: var(--vp-c-brand-1);
+  stroke-width: 1;
+}
+
+.diagram .box-muted {
+  fill: var(--vp-c-bg-soft);
+  stroke: var(--vp-c-divider);
+  stroke-width: 1;
+}
+
+.diagram .box-dashed {
+  fill: none;
+  stroke: var(--vp-c-divider);
+  stroke-width: 1;
+  stroke-dasharray: 5 4;
+}
+
+.diagram .t {
+  fill: var(--vp-c-text-1);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.diagram .s {
+  fill: var(--vp-c-text-2);
+  font-size: 12px;
+}
+
+.diagram .mono {
+  font-family: var(--vp-font-family-mono);
+  font-size: 11.5px;
+}
+
+.diagram .lbl {
+  fill: var(--vp-c-text-2);
+  font-size: 11px;
+}
+
+.diagram .edge {
+  fill: none;
+  stroke: var(--vp-c-text-3);
+  stroke-width: 1.2;
+}
+
+.diagram .edge.dashed {
+  stroke-dasharray: 4 3;
+}
+
+.diagram .arrowhead {
+  fill: none;
+  stroke: var(--vp-c-text-3);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
