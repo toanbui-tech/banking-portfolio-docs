@@ -56,7 +56,15 @@ export default defineConfig({
           text: 'Tài liệu liên quan',
           items: [
             { text: 'ADR-002: Double-Entry Immutable Ledger', link: '/adr/ADR-002-double-entry-ledger-immutable-pattern' },
-            { text: 'ADR-003: Concurrency & Hot Accounts', link: '/adr/ADR-003-pessimistic-vs-optimistic-locking-hot-accounts' }
+            { text: 'ADR-003: Concurrency & Hot Accounts', link: '/adr/ADR-003-pessimistic-vs-optimistic-locking-hot-accounts' },
+            { text: 'ADR-006: Derived vs Stored Balance', link: '/adr/ADR-006-derived-balance-vs-stored-balance' },
+            { text: 'ADR-007: Pessimistic Locking khi rút tiền', link: '/adr/ADR-007-pessimistic-locking-withdraw' },
+            { text: 'ADR-008: Transaction Aggregate Root', link: '/adr/ADR-008-transaction-aggregate-root' },
+            { text: 'ADR-009: Outbox Pattern & Kafka', link: '/adr/ADR-009-outbox-pattern-kafka-event-publishing' },
+            { text: 'ADR-010: Redis Cache Account Balance', link: '/adr/ADR-010-redis-cache-account-balance' },
+            { text: 'ADR-011: Oracle Dual-Profile Support', link: '/adr/ADR-011-oracle-dual-profile-support' },
+            { text: 'ADR-012: Money Fixed Scale', link: '/adr/ADR-012-money-fixed-scale' },
+            { text: 'ADR-013: Kubernetes Deployment', link: '/adr/ADR-013-kubernetes-deployment' }
           ]
         }
       ],
@@ -129,7 +137,7 @@ export default defineConfig({
 
     footer: {
       message: 'Simulated Banking & Fintech Systems — Java & Spring Boot',
-      copyright: 'Copyright © 2024-2025 Toan Bui - Software Engineer. All rights reserved.'
+      copyright: 'Copyright © 2024-2026 Toan Bui - Software Engineer. All rights reserved.'
     },
 
     search: {

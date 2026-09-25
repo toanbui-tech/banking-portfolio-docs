@@ -25,7 +25,7 @@ features:
   - title: Interbank Payment Gateway
     details: Xử lý giao dịch liên ngân hàng theo chuẩn ISO 20022 (pain.001, pacs.008), điều phối giao dịch phân tán qua Saga Orchestrator, quyết toán cuối ngày bằng Spring Batch.
   - title: Architecture Decision Records
-    details: Các bản ghi quyết định kiến trúc (ADR) theo format Vấn đề - Lựa chọn - Lý do - Đánh đổi, phản ánh tư duy thiết kế thực sự sẽ áp dụng khi triển khai.
+    details: Các bản ghi quyết định kiến trúc (ADR) theo format Vấn đề - Lựa chọn - Lý do - Đánh đổi, kèm vấn đề kỹ thuật thực tế gặp phải khi triển khai — 13 ADR, trong đó 9 ADR đã áp dụng trong Core Banking.
   - title: Lộ trình & Nhật ký tiến độ
     details: Lộ trình xây dựng 3-6 tháng, cùng nhật ký tiến độ theo từng giai đoạn — cập nhật trung thực khi triển khai, không phải trước.
 ---
@@ -38,7 +38,7 @@ features:
 2. **Giao dịch phân tán**: điều phối giao dịch liên ngân hàng bằng Saga Orchestration thay vì 2PC, xử lý idempotency và compensating transaction khi một bước thất bại.
 3. **Chuẩn hóa thông điệp tài chính**: parse & validate message ISO 20022 (`pain.001`, `pacs.008`), quyết toán cuối ngày theo batch.
 
-Cả hai hệ thống đang trong quá trình xây dựng; tiến độ theo từng giai đoạn được cập nhật tại [Devlog](/devlog/).
+**Core Banking System đã hoàn thành Giai đoạn 1** (45/45 test pass trên PostgreSQL và Oracle, kiểm chứng chống overdraft qua 3 Pod Kubernetes). Payment Gateway là giai đoạn tiếp theo. Tiến độ chi tiết tại [Trạng thái dự án](/project-status) và [Devlog](/devlog/).
 
 ---
 
@@ -53,10 +53,10 @@ Cả hai hệ thống đang trong quá trình xây dựng; tiến độ theo t�
 Gọi sang Core Banking qua Internal REST, kèm header `Idempotency-Key`:
 
 **Sub-project B: Core Banking System**
-- Account Service — quản lý tài khoản
-- Ledger Service — sổ cái double-entry (append-only)
-- Transaction Service — xử lý giao dịch, đảm bảo Debit = Credit
-- Concurrency Guard — Pessimistic Lock + khóa theo thứ tự cố định
+- Account Service — quản lý tài khoản, số dư tính động từ ledger
+- Ledger Service + `Transaction` aggregate root — sổ cái double-entry (append-only), đảm bảo Debit = Credit
+- Concurrency Guard — Pessimistic Lock (`SELECT ... FOR UPDATE`), verify qua 3 Pod K8s
+- Outbox Pattern + Kafka, Redis cache, chạy song song PostgreSQL/Oracle
 
 Payment Gateway gọi vào Core Banking để cập nhật số dư thực tế (tích hợp ở [Giai đoạn 3](/roadmap#giai-doan-3)).
 

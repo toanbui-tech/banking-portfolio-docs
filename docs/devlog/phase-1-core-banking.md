@@ -264,8 +264,15 @@ Quyết định thiết kế đầy đủ (Context, 2 Options Considered, Decisi
 
 ## Khó khăn & giải pháp
 
-_Sẽ cập nhật khi gặp vấn đề thực tế phát sinh trong quá trình xây dựng nghiệp vụ (ngoài phạm vi setup môi trường)._
+Các vấn đề kỹ thuật thực tế ở từng bước đã ghi ngay trong từng mục phía trên. Bản tổng hợp theo dạng triệu chứng → nguyên nhân → xử lý → bài học: [Core Banking — Thử thách & Bài học rút ra](/core-banking/lessons-learned).
 
 ## Khái niệm học được
 
-_Ghi lại các khái niệm tổng quát (ACID, locking, audit trail...) có thể tái dùng về sau._
+- **Double-entry bookkeeping** — tài khoản tiền gửi khách hàng là Nợ phải trả của ngân hàng: tăng ghi Có, giảm ghi Nợ; tổng Nợ luôn bằng tổng Có.
+- **Check-then-act vs lost update** — Optimistic Locking (`@Version`) chỉ bắt được lost update trên chính entity; race condition kiểu "kiểm tra rồi hành động" cần Pessimistic Lock.
+- **Aggregate root & invariant** — invariant nghiệp vụ đặt trong aggregate, service chỉ orchestrate.
+- **JPA persist vs merge** — entity có ID gán sẵn cần `Persistable.isNew()` để được insert đúng.
+- **Dual Write & Outbox Pattern** — ghi DB và gửi message không thể nguyên tử nếu làm riêng; Outbox biến nó thành một transaction DB.
+- **At-least-once delivery & idempotent consumer** — message có thể đến nhiều lần, consumer phải tự loại trùng.
+- **Cache-aside & invalidation sau commit** — evict trước commit mở ra cửa sổ race ghi lại dữ liệu cũ vào cache.
+- **Scale của `BigDecimal`** — `equals()` so sánh cả scale, `compareTo()` chỉ so giá trị; mỗi DB giữ scale khác nhau.
