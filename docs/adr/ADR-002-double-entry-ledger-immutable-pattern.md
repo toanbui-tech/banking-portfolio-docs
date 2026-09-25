@@ -20,5 +20,5 @@ Sổ cái kế toán kép, chỉ ghi thêm (append-only double-entry ledger): m�
 
 ## 4. Đánh đổi
 
-- Bảng `journal_entries` tăng kích thước liên tục theo thời gian vì không bao giờ xóa dữ liệu.
+- Bảng `ledger_entries` tăng kích thước liên tục theo thời gian vì không bao giờ xóa dữ liệu.
 - Truy vấn số dư "hiện tại" phức tạp hơn so với đọc thẳng một cột `balance` — cần cân nhắc giữ thêm cột số dư đã tính sẵn (materialized balance) song song với sổ cái, miễn là luôn có thể đối chiếu lại từ lịch sử bút toán khi cần.

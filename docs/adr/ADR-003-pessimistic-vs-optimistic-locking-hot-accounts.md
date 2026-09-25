@@ -1,5 +1,7 @@
 # ADR-003: Pessimistic vs Optimistic Locking cho Hot Accounts
 
+> **Trạng thái:** phần Pessimistic Lock đã áp dụng cho `withdraw()` — xem [ADR-007](/adr/ADR-007-pessimistic-locking-withdraw) (quyết định cụ thể) và [ADR-013](/adr/ADR-013-kubernetes-deployment) (kiểm chứng qua nhiều Pod). Phần khóa theo thứ tự cố định sẽ áp dụng khi bổ sung API chuyển khoản giữa 2 tài khoản.
+
 ## 1. Vấn đề
 
 Khi nhiều giao dịch đồng thời cùng đọc/ghi số dư của một tài khoản ("hot account" — ví dụ tài khoản thu phí dùng chung), cần một cơ chế khóa để tránh lost update (hai giao dịch cùng đọc số dư cũ, cùng ghi đè, làm mất một phần thay đổi).
