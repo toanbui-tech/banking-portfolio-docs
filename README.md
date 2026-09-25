@@ -49,3 +49,7 @@ npm run docs:preview   # xem thử bản build
 ## Triển khai
 
 Push lên `main` sẽ tự động build và deploy lên GitHub Pages qua [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml).
+
+## Đóng góp
+
+Tên nhánh, commit message và tiêu đề PR theo luật trong [CONTRIBUTING.md](CONTRIBUTING.md) (Conventional Commits), được kiểm tra tự động trên mỗi PR bởi [`.github/workflows/naming.yml`](.github/workflows/naming.yml).
