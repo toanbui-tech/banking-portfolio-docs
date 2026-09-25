@@ -144,6 +144,8 @@ export default defineConfig({
 
   head: [
     ['link', { rel: 'icon', type: 'image/svg+xml', href: `${base}favicon.svg` }],
+    // Icon khi "Thêm vào màn hình chính" trên iOS (iOS không dùng favicon SVG)
+    ['link', { rel: 'apple-touch-icon', sizes: '180x180', href: `${base}apple-touch-icon.png` }],
     ['meta', { name: 'theme-color', content: '#ffffff' }],
   ],
 
