@@ -24,5 +24,5 @@ Không thể dùng 2PC (Two-Phase Commit) vì các bên tham gia thuộc các h�
 ## 4. Đánh đổi
 
 - Orchestrator có thể trở thành điểm nghẽn hoặc single point of failure nếu không được thiết kế cẩn thận.
-- Giảm giảm bớt tính loose-coupling so với Choreography — các service phải "biết" và tuân theo lệnh của Orchestrator thay vì hoàn toàn độc lập.
+- Giảm bớt tính loose-coupling so với Choreography — các service phải "biết" và tuân theo lệnh của Orchestrator thay vì hoàn toàn độc lập.
 - Hướng khắc phục dự kiến: giữ Orchestrator ở dạng stateless (state machine lưu trong DB, không giữ trong bộ nhớ tiến trình), để có thể chạy nhiều instance song song mà không mất trạng thái khi một instance chết.
